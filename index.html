@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>学童野球スコア共有</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1a6b3c;
+  --green-light: #e8f5ee;
+  --green-mid: #2d8a52;
+  --sand: #f5f0e8;
+  --sand-dark: #e8e0d0;
+  --ink: #1a1a1a;
+  --ink-mid: #4a4a4a;
+  --ink-light: #888;
+  --white: #fff;
+  --border: #d4cfc4;
+  --red: #c0392b;
+  --radius: 12px;
+  --radius-sm: 7px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--sand);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--green);
+  color: #fff;
+  padding: 16px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-icon {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.15);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.header h1 { font-size: 16px; font-weight: 700; letter-spacing: .04em; }
+.header p  { font-size: 11px; opacity: .7; margin-top: 1px; }
+
+/* ── TABS ── */
+.tabs {
+  display: flex;
+  background: var(--green);
+  padding: 0 16px;
+  border-bottom: 2px solid rgba(255,255,255,.1);
+}
+.tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.6);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.tab.active { color: #fff; border-color: #fff; }
+
+/* ── PAGES ── */
+.page { display: none; padding: 14px 14px 80px; }
+.page.active { display: block; }
+
+/* ── CARD ── */
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-light);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: .05em;
+}
+.badge-ai { background: #ede9ff; color: #5b45cc; }
+.badge-new { background: #e8f5ee; color: var(--green); }
+
+/* ── FORM ── */
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 12px; color: var(--ink-mid); margin-bottom: 4px; font-weight: 500; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  background: var(--sand);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  -webkit-appearance: none;
+}
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+.field input:focus, .field select:focus { outline: 2px solid var(--green-mid); border-color: var(--green-mid); background: #fff; }
+.field-row { display: flex; gap: 8px; }
+.field-row .field { flex: 1; }
+.hidden { display: none !important; }
+
+/* ── PHOTO DROP ── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.has-img { border-color: var(--green-mid); background: var(--green-light); }
+.drop-zone-text { font-size: 13px; color: var(--ink-light); line-height: 1.6; }
+.drop-zone-text strong { color: var(--green); display: block; font-size: 15px; margin-bottom: 4px; }
+.preview-img { width: 100%; border-radius: var(--radius-sm); margin-top: 10px; display: none; }
+
+/* ── AI BUTTON ── */
+.btn-ai {
+  width: 100%;
+  padding: 12px;
+  background: #5b45cc;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background .15s, opacity .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-ai:disabled { opacity: .5; cursor: default; }
+.btn-ai:not(:disabled):hover { background: #4a35bb; }
+
+/* ── SCORE TABLE ── */
+.score-wrap { overflow-x: auto; margin: 0 -4px; padding: 0 4px; }
+table.scoreboard {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  min-width: 300px;
+}
+.scoreboard th {
+  background: var(--green);
+  color: rgba(255,255,255,.9);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 3px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.15);
+}
+.scoreboard th.team-th { text-align: left; padding-left: 8px; min-width: 90px; font-family: 'Noto Sans JP', sans-serif; }
+.scoreboard td { border: 1px solid var(--sand-dark); padding: 2px; text-align: center; background: var(--white); }
+.scoreboard td.team-td {
+  text-align: left; padding: 4px 8px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px; font-weight: 500;
+  min-width: 90px; max-width: 110px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  background: var(--sand);
+}
+.scoreboard td.total-td {
+  font-weight: 700;
+  font-size: 15px;
+  background: var(--green-light);
+  color: var(--green);
+  border: 1px solid #b8ddc8;
+  min-width: 36px;
+}
+.score-inp {
+  width: 38px; height: 30px;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--ink);
+  padding: 0 2px;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.score-inp:focus { outline: 2px solid var(--green-mid); background: var(--green-light); border-radius: 3px; }
+
+/* ── STATUS ── */
+.status-bar {
+  font-size: 12px;
+  color: var(--ink-mid);
+  padding: 8px 10px;
+  background: var(--sand);
+  border-radius: var(--radius-sm);
+  margin-top: 8px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.status-bar.ok  { background: var(--green-light); color: var(--green); }
+.status-bar.err { background: #fdecea; color: var(--red); }
+
+/* ── SHARE ── */
+.btn-share {
+  width: 100%;
+  padding: 14px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+  letter-spacing: .04em;
+}
+.btn-share:hover { background: var(--green-mid); }
+
+.share-result {
+  margin-top: 12px;
+  background: var(--sand);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: none;
+}
+.share-url-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-mid);
+  word-break: break-all;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.btn-copy {
+  width: 100%;
+  padding: 10px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--green);
+  transition: background .15s;
+}
+.btn-copy:hover { background: var(--green-light); }
+
+/* ── VIEW PAGE ── */
+.view-header {
+  background: var(--green);
+  color: #fff;
+  padding: 20px 16px;
+  text-align: center;
+}
+.view-header .stadium-name { font-size: 12px; opacity: .7; margin-bottom: 4px; letter-spacing: .08em; }
+.view-header .match-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.view-header .match-time { font-size: 12px; opacity: .75; }
+.view-status-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.status-live { background: #ff4444; color: #fff; animation: pulse 1.4s ease-in-out infinite; }
+.status-end  { background: rgba(255,255,255,.2); color: #fff; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+.view-score-wrap { padding: 16px; }
+.view-scoreboard {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(0,0,0,.07);
+}
+.view-scoreboard th {
+  background: #2a2a2a;
+  color: #aaa;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 7px 4px;
+  text-align: center;
+  border: 1px solid #3a3a3a;
+}
+.view-scoreboard th.v-team-th { text-align: left; padding-left: 10px; min-width: 90px; font-family: 'Noto Sans JP', sans-serif; }
+.view-scoreboard td { border: 1px solid #e8e4dc; padding: 5px 4px; text-align: center; background: var(--white); font-size: 14px; }
+.view-scoreboard td.v-team-td {
+  text-align: left; padding: 6px 10px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px; font-weight: 700;
+  background: var(--sand);
+  min-width: 90px;
+}
+.view-scoreboard td.v-total {
+  font-size: 18px; font-weight: 700;
+  background: var(--green);
+  color: #fff;
+  border: 1px solid var(--green-mid);
+  min-width: 40px;
+}
+.view-scoreboard td.v-empty { color: #ccc; }
+.view-scoreboard td.current-inn { background: #fffbe6; }
+.view-info { padding: 0 16px 16px; display: flex; gap: 10px; }
+.view-info-card { flex: 1; background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+.view-info-label { font-size: 11px; color: var(--ink-light); margin-bottom: 4px; }
+.view-info-value { font-size: 15px; font-weight: 700; color: var(--ink); }
+
+/* ── SPINNER ── */
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.inning-add-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.btn-add-inn {
+  padding: 7px 14px;
+  background: var(--sand);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--green);
+}
+.btn-add-inn:hover { background: var(--green-light); }
+.btn-del-inn {
+  padding: 7px 12px;
+  background: var(--sand);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--red);
+}
+.inn-count-label { font-size: 12px; color: var(--ink-light); }
+</style>
+</head>
+<body>
+
+<!-- ===== EDIT PAGE ===== -->
+<div id="edit-page">
+  <div class="header">
+    <div class="header-icon">⚾</div>
+    <div>
+      <h1>学童野球スコア共有</h1>
+      <p>スコアボードを撮影してAI解析・共有</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('input')">スコア入力</div>
+    <div class="tab" onclick="switchTab('share')">共有</div>
+  </div>
+
+  <!-- INPUT TAB -->
+  <div class="page active" id="tab-input">
+
+    <!-- 試合情報 -->
+    <div class="card">
+      <div class="card-title">試合情報</div>
+      <div class="field">
+        <label>球場</label>
+        <select id="stadium" onchange="onStadiumChange()">
+          <option value="砂町">砂町</option>
+          <option value="夢の島">夢の島</option>
+          <option value="other">その他（下記）</option>
+        </select>
+      </div>
+      <div class="field hidden" id="stadium-other-field">
+        <label>球場名（自由入力）</label>
+        <input type="text" id="stadium-custom" placeholder="例：辰巳野球場">
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>試合開始時間</label>
+          <input type="time" id="start-time" value="10:00">
+        </div>
+        <div class="field">
+          <label>試合状況</label>
+          <select id="game-status">
+            <option value="before">試合前</option>
+            <option value="live">試合中</option>
+            <option value="end">試合終了</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 写真・AI解析 -->
+    <div class="card">
+      <div class="card-title">
+        スコアボード写真
+        <span class="badge badge-ai">✦ AI解析</span>
+      </div>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('img-input').click()">
+        <div class="drop-zone-text">
+          <strong>📷 写真を選択</strong>
+          スコアボードを撮影した写真を<br>選んでください
+        </div>
+        <img class="preview-img" id="preview-img">
+      </div>
+      <input type="file" id="img-input" accept="image/*" style="display:none" onchange="onImageSelect(event)">
+      <button class="btn-ai" id="ai-btn" onclick="analyzeImage()" disabled>
+        <div class="spinner" id="spinner"></div>
+        <span id="ai-btn-text">✦ AI でチーム名・スコアを解析</span>
+      </button>
+      <div class="status-bar" id="status-bar">写真を選択するとAI解析できます</div>
+    </div>
+
+    <!-- チーム名 -->
+    <div class="card">
+      <div class="card-title">チーム名</div>
+      <div class="field-row">
+        <div class="field">
+          <label>先攻（上段）</label>
+          <input type="text" id="team1" placeholder="チーム名" oninput="updateTeamNames()">
+        </div>
+        <div class="field">
+          <label>後攻（下段）</label>
+          <input type="text" id="team2" placeholder="チーム名" oninput="updateTeamNames()">
+        </div>
+      </div>
+    </div>
+
+    <!-- スコアボード -->
+    <div class="card">
+      <div class="card-title">スコア入力</div>
+      <div class="score-wrap">
+        <table class="scoreboard" id="scoreboard"></table>
+      </div>
+      <div class="inning-add-row">
+        <button class="btn-add-inn" onclick="addInning()">＋ イニング追加</button>
+        <button class="btn-del-inn" onclick="removeInning()">－</button>
+        <span class="inn-count-label" id="inn-count-label">現在 1〜<span id="inn-max">9</span>回</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHARE TAB -->
+  <div class="page" id="tab-share">
+    <div class="card">
+      <div class="card-title">共有URL生成</div>
+      <p style="font-size:13px;color:var(--ink-mid);line-height:1.7;margin-bottom:14px">
+        スコアデータをURLに埋め込んで共有します。<br>
+        LINEやメッセージで送ると、相手がそのURLを開くだけでスコアを確認できます。
+      </p>
+      <button class="btn-share" onclick="generateShare()">🔗 共有URLを生成</button>
+      <div class="share-result" id="share-result">
+        <div class="share-url-text" id="share-url-text"></div>
+        <button class="btn-copy" id="btn-copy" onclick="copyUrl()">URLをコピー</button>
+        <p style="font-size:11px;color:var(--ink-light);margin-top:8px;text-align:center">
+          コピーしてLINE・メッセージ等で送ってください
+        </p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">GitHub Pages について</div>
+      <p style="font-size:13px;color:var(--ink-mid);line-height:1.8">
+        このHTMLをGitHub Pagesに公開すると、短いURLでアクセスできます。<br><br>
+        <strong>手順：</strong><br>
+        1. GitHubで新しいリポジトリを作成<br>
+        2. このindex.htmlをアップロード<br>
+        3. Settings → Pages → Deploy from main branch<br>
+        4. 公開されたURLを使って共有
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== VIEW PAGE ===== -->
+<div id="view-page" style="display:none">
+  <div class="view-header">
+    <div class="stadium-name" id="v-stadium"></div>
+    <div class="match-title" id="v-title"></div>
+    <div class="match-time" id="v-time"></div>
+    <div class="view-status-badge" id="v-status-badge"></div>
+  </div>
+  <div class="view-score-wrap">
+    <div style="overflow-x:auto">
+      <table class="view-scoreboard" id="v-scoreboard"></table>
+    </div>
+  </div>
+  <div class="view-info">
+    <div class="view-info-card">
+      <div class="view-info-label">球場</div>
+      <div class="view-info-value" id="v-info-stadium">—</div>
+    </div>
+    <div class="view-info-card">
+      <div class="view-info-label">開始時間</div>
+      <div class="view-info-value" id="v-info-time">—</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 32px">
+    <button class="btn-share" onclick="window.location.href=window.location.pathname" style="background:#444;font-size:13px;padding:11px">
+      ✏️ スコアを入力・編集する
+    </button>
+  </div>
+</div>
+
+<script>
+// =====================
+// STATE
+// =====================
+let imageBase64 = null;
+let imageMediaType = 'image/jpeg';
+let innings = 9;
+
+function scoreOptions(selected) {
+  let opts = '<option value="">−</option>';
+  for (let i = 0; i <= 30; i++) {
+    const sel = (String(selected) === String(i)) ? ' selected' : '';
+    opts += `<option value="${i}"${sel}>${i}</option>`;
+  }
+  return opts;
+}
+
+// =====================
+// TABS
+// =====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', (tab==='input'&&i===0)||(tab==='share'&&i===1));
+  });
+  document.getElementById('tab-input').classList.toggle('active', tab==='input');
+  document.getElementById('tab-share').classList.toggle('active', tab==='share');
+}
+
+// =====================
+// STADIUM
+// =====================
+function onStadiumChange() {
+  const v = document.getElementById('stadium').value;
+  document.getElementById('stadium-other-field').classList.toggle('hidden', v !== 'other');
+}
+function getStadiumName() {
+  const v = document.getElementById('stadium').value;
+  return v === 'other' ? (document.getElementById('stadium-custom').value || 'その他') : v;
+}
+
+// =====================
+// SCOREBOARD BUILD
+// =====================
+function buildTable() {
+  const cols = Array.from({length: innings}, (_, i) => i + 1);
+  let html = `<tr><th class="team-th">チーム</th>`;
+  cols.forEach(c => html += `<th>${c}</th>`);
+  html += `<th>計</th></tr>`;
+  [1, 2].forEach(t => {
+    html += `<tr><td class="team-td" id="tn${t}">チーム${t}</td>`;
+    cols.forEach(c => html += `<td><select class="score-inp" id="s${t}_${c}" onchange="updateTotal()">${scoreOptions()}</select></td>`);
+    html += `<td class="total-td" id="tot${t}">0</td></tr>`;
+  });
+  document.getElementById('scoreboard').innerHTML = html;
+  document.getElementById('inn-max').textContent = innings;
+  updateTeamNames();
+  updateTotal();
+}
+
+function addInning() {
+  innings++;
+  preserveAndRebuild();
+}
+function removeInning() {
+  if (innings <= 1) return;
+  innings--;
+  preserveAndRebuild();
+}
+function preserveAndRebuild() {
+  const s1 = [], s2 = [];
+  for (let i = 1; i <= 99; i++) {
+    const e1 = document.getElementById(`s1_${i}`);
+    const e2 = document.getElementById(`s2_${i}`);
+    if (!e1) break;
+    s1.push(e1.value);
+    s2.push(e2.value);
+  }
+  buildTable();
+  s1.forEach((v, i) => { const el = document.getElementById(`s1_${i+1}`); if(el && v!=='') el.value = v; });
+  s2.forEach((v, i) => { const el = document.getElementById(`s2_${i+1}`); if(el && v!=='') el.value = v; });
+  updateTotal();
+}
+
+function setScoreSelect(id, val) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (val !== null && val !== undefined && val !== '') {
+    el.value = String(val);
+  }
+}
+
+function updateTeamNames() {
+  const t1 = document.getElementById('team1').value || '先攻';
+  const t2 = document.getElementById('team2').value || '後攻';
+  const e1 = document.getElementById('tn1');
+  const e2 = document.getElementById('tn2');
+  if (e1) e1.textContent = t1;
+  if (e2) e2.textContent = t2;
+}
+
+function updateTotal() {
+  [1, 2].forEach(t => {
+    let tot = 0;
+    for (let i = 1; i <= innings; i++) {
+      const v = parseInt(document.getElementById(`s${t}_${i}`)?.value || '0') || 0;
+      tot += v;
+    }
+    const el = document.getElementById(`tot${t}`);
+    if (el) el.textContent = tot;
+  });
+}
+
+// =====================
+// IMAGE
+// =====================
+function onImageSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  imageMediaType = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    imageBase64 = ev.target.result.split(',')[1];
+    const img = document.getElementById('preview-img');
+    img.src = ev.target.result;
+    img.style.display = 'block';
+    document.getElementById('drop-zone').classList.add('has-img');
+    document.getElementById('ai-btn').disabled = false;
+    setStatus('写真を読み込みました。「AI解析」ボタンを押してください。', '');
+  };
+  reader.readAsDataURL(file);
+}
+
+// =====================
+// AI ANALYZE
+// =====================
+async function analyzeImage() {
+  if (!imageBase64) return;
+  const btn = document.getElementById('ai-btn');
+  const spinner = document.getElementById('spinner');
+  const btnText = document.getElementById('ai-btn-text');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  btnText.textContent = '解析中...';
+  setStatus('AIがスコアボードを解析しています...', '');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': '',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: imageMediaType, data: imageBase64 } },
+            { type: 'text', text: `この野球スコアボードの写真を解析して、以下のJSON形式のみで返してください（前置き・説明・コードブロック不要）:
+{"team1":"先攻チーム名","team2":"後攻チーム名","innings1":[先攻の各イニングスコア数値の配列、不明はnull],"innings2":[後攻の各イニングスコア数値の配列、不明はnull]}
+チーム名が読み取れない場合は空文字列を使用。スコアが空欄・不明の場合はnullを使用。` }
+          ]
+        }]
+      })
+    });
+    const data = await resp.json();
+
+    // APIエラーチェック
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    let applied = [];
+    let skipped = [];
+
+    // チーム名（読み取れた場合のみ反映）
+    if (parsed.team1 && parsed.team1.trim()) {
+      document.getElementById('team1').value = parsed.team1;
+      applied.push('先攻チーム名');
+    } else skipped.push('先攻チーム名');
+    if (parsed.team2 && parsed.team2.trim()) {
+      document.getElementById('team2').value = parsed.team2;
+      applied.push('後攻チーム名');
+    } else skipped.push('後攻チーム名');
+    updateTeamNames();
+
+    // イニング数を自動拡張
+    const maxInn = Math.max(
+      parsed.innings1 ? parsed.innings1.filter(v=>v!==null).length : 0,
+      parsed.innings2 ? parsed.innings2.filter(v=>v!==null).length : 0
+    );
+    if (maxInn > innings) { innings = maxInn; buildTable(); }
+
+    // スコア反映（nullでない値のみ）
+    let scoreCount = 0;
+    if (parsed.innings1) {
+      parsed.innings1.forEach((v, i) => {
+        if (v !== null) { setScoreSelect(`s1_${i+1}`, v); scoreCount++; }
+      });
+    }
+    if (parsed.innings2) {
+      parsed.innings2.forEach((v, i) => {
+        if (v !== null) { setScoreSelect(`s2_${i+1}`, v); scoreCount++; }
+      });
+    }
+    if (scoreCount > 0) applied.push(`スコア${scoreCount}マス`);
+    else skipped.push('スコア');
+
+    updateTotal();
+
+    const msg = applied.length > 0
+      ? `✓ 解析完了：${applied.join('・')}を反映${skipped.length ? '（' + skipped.join('・') + 'は手動入力してください）' : ''}`
+      : '⚠ 読み取れた項目がありませんでした。手動で入力してください。';
+    setStatus(msg, applied.length > 0 ? 'ok' : 'err');
+
+  } catch (err) {
+    console.error('AI error:', err);
+    setStatus('⚠ 解析に失敗：' + (err.message || '通信エラー') + '　手動で入力してください。', 'err');
+  }
+
+  btn.disabled = false;
+  spinner.style.display = 'none';
+  btnText.textContent = '✦ AI でチーム名・スコアを再解析';
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = 'status-bar' + (cls ? ' ' + cls : '');
+}
+
+// =====================
+// SHARE
+// =====================
+function collectData() {
+  const s1 = [], s2 = [];
+  for (let i = 1; i <= innings; i++) {
+    s1.push(document.getElementById(`s1_${i}`)?.value ?? '');
+    s2.push(document.getElementById(`s2_${i}`)?.value ?? '');
+  }
+  return {
+    st: getStadiumName(),
+    tm: document.getElementById('start-time').value,
+    t1: document.getElementById('team1').value,
+    t2: document.getElementById('team2').value,
+    s1: s1.join(','),
+    s2: s2.join(','),
+    inn: innings,
+    gs: document.getElementById('game-status').value
+  };
+}
+
+function generateShare() {
+  const data = collectData();
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  const url = location.origin + location.pathname + '?d=' + encoded;
+  document.getElementById('share-url-text').textContent = url;
+  document.getElementById('share-result').style.display = 'block';
+}
+
+function copyUrl() {
+  const url = document.getElementById('share-url-text').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = '✓ コピーしました！';
+    setTimeout(() => btn.textContent = 'URLをコピー', 2500);
+  });
+}
+
+// =====================
+// VIEW MODE
+// =====================
+function loadViewMode(data) {
+  document.getElementById('edit-page').style.display = 'none';
+  document.getElementById('view-page').style.display = 'block';
+
+  const statusMap = { before: '試合前', live: '試合中 LIVE', end: '試合終了' };
+  const statusClass = { before: 'status-end', live: 'status-live', end: 'status-end' };
+
+  document.getElementById('v-stadium').textContent = '⚾ ' + (data.st || '');
+  document.getElementById('v-title').textContent = (data.t1 || '先攻') + ' vs ' + (data.t2 || '後攻');
+  document.getElementById('v-time').textContent = '開始 ' + (data.tm || '—');
+  const badge = document.getElementById('v-status-badge');
+  badge.textContent = statusMap[data.gs] || '';
+  badge.className = 'view-status-badge ' + (statusClass[data.gs] || 'status-end');
+  document.getElementById('v-info-stadium').textContent = data.st || '—';
+  document.getElementById('v-info-time').textContent = data.tm || '—';
+
+  const inn = data.inn || 9;
+  const s1 = (data.s1 || '').split(',');
+  const s2 = (data.s2 || '').split(',');
+
+  let html = `<tr><th class="v-team-th">チーム</th>`;
+  for (let i = 1; i <= inn; i++) html += `<th>${i}</th>`;
+  html += `<th>計</th></tr>`;
+
+  let tot1 = 0, tot2 = 0;
+  [[data.t1||'先攻', s1, 'tot1'], [data.t2||'後攻', s2, 'tot2']].forEach(([name, scores, id], ri) => {
+    html += `<tr><td class="v-team-td">${escHtml(name)}</td>`;
+    let tot = 0;
+    for (let i = 0; i < inn; i++) {
+      const v = scores[i] !== undefined && scores[i] !== '' ? scores[i] : null;
+      if (v !== null) { tot += parseInt(v) || 0; html += `<td>${v}</td>`; }
+      else html += `<td class="v-empty">−</td>`;
+    }
+    html += `<td class="v-total">${tot}</td></tr>`;
+    if (ri===0) tot1=tot; else tot2=tot;
+  });
+  document.getElementById('v-scoreboard').innerHTML = html;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// =====================
+// INIT
+// =====================
+function init() {
+  buildTable();
+  const p = new URLSearchParams(location.search);
+  const d = p.get('d');
+  if (d) {
+    try {
+      const data = JSON.parse(decodeURIComponent(escape(atob(d))));
+      loadViewMode(data);
+    } catch(e) {
+      console.error('URL decode error', e);
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>
