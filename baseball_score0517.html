@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学童野球スコアブック</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0efe9;--border:#ddd;--border2:#ccc;
+  --text:#1a1a1a;--text2:#555;--text3:#999;
+  --blue:#1a6fb5;--green:#1a8a3a;--red:#c0392b;--orange:#d46b1a;--purple:#7b3fb5;
+  --yellow:#e8b800;--field:#2d5a27;--runner:#e85c3a;
+  --btn-h:44px;--radius:8px;
+}
+body{font-family:'Hiragino Sans','Meiryo',sans-serif;font-size:14px;background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;}
+
+/* ===== SCREENS ===== */
+.screen{display:none;flex-direction:column;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* ===== NAV ===== */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 12px 8px;position:sticky;top:0;z-index:50;}
+.nav-title{font-size:16px;font-weight:600;color:var(--text);}
+.nav-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.nav-row{display:flex;align-items:center;justify-content:space-between;}
+
+/* ===== COMMON ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;padding:8px 12px;min-height:var(--btn-h);transition:all .1s;white-space:nowrap;text-align:center;}
+.btn:active{opacity:.7;transform:scale(.97);}
+.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green);}
+.btn.danger{background:var(--red);color:#fff;border-color:var(--red);}
+.btn.ghost{background:transparent;border-color:var(--border);}
+.btn.sm{min-height:34px;font-size:12px;padding:5px 10px;}
+.btn.xs{min-height:28px;font-size:11px;padding:3px 8px;}
+.btn.full{width:100%;}
+.btn.hit{color:var(--blue);border-color:rgba(26,111,181,.4);}
+.btn.out{color:var(--red);border-color:rgba(192,57,43,.4);}
+.btn.evt{color:var(--purple);border-color:rgba(123,63,181,.4);}
+.btn.warn{color:var(--orange);border-color:rgba(212,107,26,.4);}
+.btn.disabled{opacity:.3;pointer-events:none;}
+
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:12px;}
+.section-label{font-size:10px;color:var(--text3);margin-bottom:4px;padding-left:2px;}
+.row{display:flex;gap:6px;}
+.col{display:flex;flex-direction:column;gap:6px;}
+.gap4{gap:4px !important;}
+input,select,textarea{border:1px solid var(--border2);border-radius:var(--radius);padding:8px 10px;font-size:14px;color:var(--text);background:var(--surface);width:100%;font-family:inherit;}
+input:focus,select:focus{outline:2px solid var(--blue);border-color:transparent;}
+label{font-size:13px;color:var(--text2);display:block;margin-bottom:4px;}
+
+/* ===== MENU ===== */
+#screen-menu{background:var(--bg);}
+.menu-hero{background:var(--field);color:#fff;padding:24px 16px 20px;text-align:center;}
+.menu-hero h1{font-size:22px;font-weight:700;margin-bottom:4px;}
+.menu-hero p{font-size:12px;opacity:.7;}
+.menu-list{padding:16px 12px;display:flex;flex-direction:column;gap:8px;}
+.menu-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:background .1s;}
+.menu-item:active{background:var(--surface2);}
+.menu-item-icon{font-size:22px;width:32px;text-align:center;}
+.menu-item-text h3{font-size:14px;font-weight:600;}
+.menu-item-text p{font-size:11px;color:var(--text3);margin-top:1px;}
+.menu-saved-list{padding:0 12px 16px;display:flex;flex-direction:column;gap:6px;}
+.saved-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.saved-item:active{background:var(--surface2);}
+.saved-item-info h4{font-size:13px;font-weight:500;}
+.saved-item-info p{font-size:11px;color:var(--text3);margin-top:1px;}
+.saved-item-actions{display:flex;gap:4px;}
+
+/* ===== TEAM SETUP ===== */
+#screen-teams{background:var(--bg);}
+.team-list{padding:12px;display:flex;flex-direction:column;gap:8px;}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.team-card-header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--surface2);}
+.team-card-header h3{font-size:13px;font-weight:600;}
+.team-card-body{padding:10px 12px;display:none;}
+.team-card.open .team-card-body{display:block;}
+.player-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.player-num{width:40px;text-align:center;font-size:12px;border:1px solid var(--border2);border-radius:4px;padding:5px 2px;}
+.player-name{flex:1;}
+.player-pos{width:56px;font-size:12px;}
+
+/* ===== GAME SETUP ===== */
+#screen-setup{background:var(--bg);}
+.setup-form{padding:12px;display:flex;flex-direction:column;gap:12px;}
+
+/* ===== ORDER SHEET ===== */
+#screen-order{background:var(--bg);}
+.order-list{padding:12px;display:flex;flex-direction:column;gap:6px;}
+.order-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;display:flex;align-items:center;gap:8px;}
+.order-num{width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.order-player{flex:1;}
+.order-player .name{font-size:14px;font-weight:500;}
+.order-player .pos{font-size:11px;color:var(--text3);}
+.order-jersey{font-size:20px;font-weight:700;color:var(--text2);min-width:36px;text-align:center;}
+
+/* ===== SCORE MAIN ===== */
+#screen-score{background:var(--bg);}
+.score-header{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;}
+.sh-teams{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:6px;}
+.sh-team-name{font-size:13px;font-weight:600;}
+.sh-score{font-size:26px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.sh-vs{font-size:11px;color:var(--text3);}
+.sh-badges{display:flex;justify-content:center;gap:6px;flex-wrap:wrap;}
+.badge{font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text2);}
+.badge b{color:var(--text);font-weight:600;}
+.badge.info{background:#e6f1fb;border-color:#b5d4f4;color:#0c447c;}
+.badge.warn{background:#faeeda;border-color:#fac775;color:#633806;}
+
+/* Scoreboard */
+.scoreboard-wrap{background:var(--surface2);border-bottom:1px solid var(--border);padding:4px 8px;overflow-x:auto;}
+.scoreboard{width:100%;border-collapse:collapse;font-size:11px;min-width:300px;}
+.scoreboard th,.scoreboard td{padding:2px 3px;text-align:center;white-space:nowrap;}
+.scoreboard th{color:var(--text3);font-weight:400;}
+.scoreboard .tn{text-align:left;font-weight:600;font-size:12px;}
+.scoreboard .tot{font-weight:700;}
+.scoreboard .cur{background:#e6f1fb;color:#0c447c;border-radius:2px;}
+
+/* SBO + Pitcher */
+.sbo-row{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 12px;display:flex;align-items:center;gap:8px;}
+.sbo-group{display:flex;align-items:center;gap:4px;}
+.sbo-label{font-size:10px;color:var(--text3);min-width:14px;}
+.sbo-dot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;}
+.sbo-dot.s{border-color:#c8a000;background:#f5c842;}
+.sbo-dot.b{border-color:#1a8a3a;background:#2ab54e;}
+.sbo-dot.o{border-color:#888;background:#888;}
+.sbo-sep{width:1px;height:20px;background:var(--border);margin:0 2px;}
+.pitcher-info{flex:1;text-align:right;font-size:11px;color:var(--text3);}
+.pitcher-info b{color:var(--text);font-weight:600;}
+.pitch-count{font-size:13px;font-weight:700;color:var(--blue);}
+
+/* Diamond */
+.diamond-wrap{background:var(--field);padding:14px 12px 10px;display:flex;flex-direction:column;align-items:center;border-bottom:1px solid #1a3a17;}
+.outs-row{display:flex;gap:6px;align-items:center;margin-bottom:8px;}
+.out-dot{width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(255,255,255,.4);background:transparent;}
+.out-dot.on{background:var(--yellow);border-color:var(--yellow);}
+.diamond{position:relative;width:150px;height:150px;}
+.base{position:absolute;width:26px;height:26px;background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.35);transform:rotate(45deg);cursor:pointer;border-radius:2px;transition:all .15s;}
+.base.occ{background:var(--runner);border-color:var(--runner);}
+.base.sel{box-shadow:0 0 0 3px rgba(255,255,255,.8);}
+#b-home{left:62px;bottom:2px;cursor:default;background:rgba(255,255,255,.08);}
+#b-first{right:2px;top:62px;}
+#b-second{left:62px;top:2px;}
+#b-third{left:2px;top:62px;}
+.batter-diamond-info{margin-top:6px;text-align:center;}
+.batter-diamond-name{font-size:15px;font-weight:700;color:#fff;}
+.batter-diamond-detail{font-size:11px;color:rgba(255,255,255,.6);}
+
+/* Button sections */
+.btn-section{padding:8px 10px;border-bottom:1px solid var(--border);background:var(--surface);}
+.btn-section:last-child{border-bottom:none;}
+.btn-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.btn-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.btn-grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
+.btn-grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;}
+
+/* Pitch buttons */
+.pitch-btns{display:flex;gap:6px;align-items:center;}
+.pitch-btn{flex:1;height:38px;border-radius:var(--radius);border:1px solid;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pitch-btn.s-btn{color:#c8a000;border-color:#c8a000;background:#fffbe6;}
+.pitch-btn.b-btn{color:#1a8a3a;border-color:#1a8a3a;background:#e8f7ed;}
+.pitch-btn.f-btn{color:var(--red);border-color:var(--red);background:#fdf0ef;}
+.pitch-btn:active{opacity:.7;}
+
+/* Log */
+.log-section{background:var(--surface2);padding:6px 12px;border-top:1px solid var(--border);}
+.log-inner{max-height:80px;overflow-y:auto;}
+.log-item{font-size:11px;color:var(--text2);padding:1px 0;display:flex;gap:6px;}
+.log-item.foul{color:#b07800;}
+.log-item.out{color:var(--red);}
+.log-item.warn{color:var(--orange);}
+.log-tag{color:var(--text3);min-width:32px;flex-shrink:0;}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-overlay.center{align-items:center;}
+.modal-panel{background:var(--surface);border-radius:12px 12px 0 0;padding:16px 14px 24px;width:100%;max-width:430px;max-height:90vh;overflow-y:auto;}
+.modal-panel.center-panel{border-radius:12px;margin:12px;}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:12px;text-align:center;color:var(--text);}
+.modal-sub{font-size:12px;color:var(--text3);margin-bottom:10px;text-align:center;}
+.modal-cancel{width:100%;padding:10px;background:none;border:none;color:var(--text3);font-size:14px;cursor:pointer;margin-top:8px;}
+
+/* Runner select buttons */
+.runner-opts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px;}
+.runner-opt{padding:8px 16px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--surface2);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;}
+.runner-opt.sel{background:var(--runner);color:#fff;border-color:var(--runner);}
+
+/* Summary */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.sum-card{background:var(--surface2);border-radius:var(--radius);padding:8px 10px;text-align:center;}
+.sum-card .sv{font-size:22px;font-weight:700;color:var(--text);}
+.sum-card .sl{font-size:11px;color:var(--text3);}
+.inn-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);color:var(--text);}
+.inn-row span{color:var(--text3);}
+.sum-title{font-size:12px;color:var(--text3);margin:10px 0 4px;}
+
+/* Pitcher modal */
+.pitcher-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.pitcher-opt{padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius);cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.pitcher-opt:active{background:var(--surface2);}
+.pitcher-opt .pname{font-size:14px;font-weight:500;}
+.pitcher-opt .ppitch{font-size:11px;color:var(--text3);}
+
+/* Notification toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;z-index:999;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;}
+.toast.show{opacity:1;}
+
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);}
+.tab{flex:1;padding:8px;text-align:center;font-size:12px;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+
+/* Number input row */
+.num-input-row{display:flex;align-items:center;gap:8px;}
+.num-input-row input{width:70px;text-align:center;}
+.num-input-row span{font-size:13px;color:var(--text2);}
+
+/* Pitch count header bar */
+.pitch-header-bar{
+  background:#0c2540;
+  padding:6px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.pitch-header-sbo{display:flex;align-items:center;gap:10px;}
+.pitch-header-sbo .sbo-grp{display:flex;align-items:center;gap:3px;}
+.pitch-header-sbo .sbo-lbl{font-size:10px;color:rgba(255,255,255,.5);margin-right:1px;}
+.pitch-header-sbo .sbo-d{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,.3);}
+.pitch-header-sbo .sbo-d.s{background:#f5c842;border-color:#f5c842;}
+.pitch-header-sbo .sbo-d.b{background:#2ab54e;border-color:#2ab54e;}
+.pitch-header-sbo .sbo-d.o{background:#888;border-color:#888;}
+.pitch-header-right{text-align:right;}
+.pitch-header-label{font-size:10px;color:rgba(255,255,255,.5);}
+.pitch-header-num{font-size:22px;font-weight:700;color:#fff;line-height:1.1;}
+.pitch-header-name{font-size:11px;color:rgba(255,255,255,.6);}
+
+/* Auto-save indicator */
+.autosave-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2ab54e;margin-right:3px;opacity:0;transition:opacity .3s;}
+.autosave-dot.show{opacity:1;}
+
+/* ===== IMPROVED BUTTON STYLES ===== */
+/* 打席結果グリッド */
+.atbat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.atbat-btn{flex-direction:column;gap:2px;min-height:52px;padding:6px 2px;}
+.ab-icon{font-size:16px;font-weight:700;line-height:1;}
+.ab-label{font-size:10px;font-weight:500;line-height:1;}
+
+/* 投球ボタン */
+.pitch-btn{flex:1;height:52px;border-radius:var(--radius);border:2px solid;font-size:14px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:transform .08s,opacity .08s;}
+.pitch-btn-main{font-size:20px;font-weight:800;line-height:1;}
+.pitch-btn-sub{font-size:9px;font-weight:500;opacity:.8;}
+.pitch-btn.s-btn{color:#c8a000;border-color:#c8a000;background:#fffbe6;}
+.pitch-btn.b-btn{color:#1a8a3a;border-color:#1a8a3a;background:#e8f7ed;}
+.pitch-btn.f-btn{color:var(--red);border-color:var(--red);background:#fdf0ef;}
+.pitch-btn:active{opacity:.6;transform:scale(.95);}
+
+/* ログ展開 */
+.log-section{background:var(--surface2);padding:6px 12px;border-top:1px solid var(--border);cursor:pointer;}
+.log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.log-toggle{font-size:10px;color:var(--blue);}
+.log-inner{max-height:68px;overflow-y:auto;transition:max-height .2s;}
+.log-inner.expanded{max-height:200px;}
+
+/* ===== LOCK SCREEN ===== */
+#screen-lock{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--field);padding:24px;
+}
+.lock-logo{font-size:48px;margin-bottom:8px;}
+.lock-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px;}
+.lock-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:32px;text-align:center;}
+.lock-card{background:rgba(255,255,255,.12);border-radius:16px;padding:24px 20px;width:100%;max-width:300px;}
+.pin-display{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.5);background:transparent;transition:background .15s;}
+.pin-dot.filled{background:#fff;border-color:#fff;}
+.pin-dot.error{background:#e85c3a;border-color:#e85c3a;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pin-key{
+  aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.15);
+  border:none;color:#fff;font-size:22px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .1s;user-select:none;
+}
+.pin-key:active{background:rgba(255,255,255,.35);}
+.pin-key.zero{grid-column:2;}
+.pin-key.del{background:rgba(255,255,255,.08);font-size:18px;}
+.lock-msg{text-align:center;font-size:12px;color:rgba(255,255,255,.5);margin-top:12px;min-height:16px;}
+.lock-link{color:rgba(255,255,255,.45);font-size:11px;text-align:center;margin-top:16px;cursor:pointer;text-decoration:underline;}
+.setup-pin-wrap{width:100%;max-width:300px;}
+.setup-pin-step{color:rgba(255,255,255,.8);font-size:13px;text-align:center;margin-bottom:12px;}
+
+/* Security badge in score header */
+.sec-badge{font-size:10px;background:rgba(26,111,181,.15);border:1px solid rgba(26,111,181,.3);border-radius:4px;padding:1px 6px;color:var(--blue);cursor:pointer;}
+.sec-badge:hover{background:rgba(26,111,181,.25);}
+
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a1a;--surface:#252525;--surface2:#2a2a2a;--border:#3a3a3a;--border2:#4a4a4a;
+    --text:#e8e8e8;--text2:#aaa;--text3:#666;
+  }
+  .pitch-btn.s-btn{background:#2a2600;}
+  .pitch-btn.b-btn{background:#0a1f0f;}
+  .pitch-btn.f-btn{background:#2a0a0a;}
+  .scoreboard-wrap{background:#1e1e1e;}
+  .badge.info{background:#0c2540;border-color:#185fa5;color:#85b7eb;}
+  .badge.warn{background:#2a1e00;border-color:#854f0b;color:#fac775;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== LOCK SCREEN ===== -->
+<div id="screen-lock" style="display:none !important;">
+  <div class="lock-logo">⚾</div>
+  <div class="lock-title">学童野球スコアブック</div>
+  <div class="lock-sub" id="lock-sub">接続確認中...</div>
+  <div id="online-badge" style="font-size:11px;margin-bottom:20px;color:rgba(255,255,255,.5);">🔄 確認中</div>
+
+  <!-- PIN入力カード -->
+  <div class="lock-card" id="lock-card">
+    <div class="pin-display" id="pin-display"></div>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinPress(1)">1</button>
+      <button class="pin-key" onclick="pinPress(2)">2</button>
+      <button class="pin-key" onclick="pinPress(3)">3</button>
+      <button class="pin-key" onclick="pinPress(4)">4</button>
+      <button class="pin-key" onclick="pinPress(5)">5</button>
+      <button class="pin-key" onclick="pinPress(6)">6</button>
+      <button class="pin-key" onclick="pinPress(7)">7</button>
+      <button class="pin-key" onclick="pinPress(8)">8</button>
+      <button class="pin-key" onclick="pinPress(9)">9</button>
+      <button class="pin-key zero" onclick="pinPress(0)">0</button>
+      <button class="pin-key del" onclick="pinBack()">⌫</button>
+    </div>
+    <div class="lock-msg" id="lock-msg"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: MENU ===== -->
+<div class="screen active" id="screen-menu">
+  <div class="menu-hero">
+    <h1>⚾ 学童野球スコアブック</h1>
+    <p>試合記録・分析アプリ</p>
+  </div>
+  <div class="menu-list">
+    <div class="menu-item" onclick="showScreen('screen-setup')">
+      <div class="menu-item-icon">▶️</div>
+      <div class="menu-item-text">
+        <h3>新しい試合を開始</h3>
+        <p>チーム選択・オーダー入力から始める</p>
+      </div>
+    </div>
+    <div class="menu-item" onclick="showScreen('screen-teams')">
+      <div class="menu-item-icon">📋</div>
+      <div class="menu-item-text">
+        <h3>チーム・選手登録</h3>
+        <p>12チームまで登録（背番号・名前・守備位置）</p>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 12px 4px;"><span style="font-size:12px;color:var(--text3);">保存済み試合</span></div>
+  <div class="menu-saved-list" id="saved-list">
+    <div style="padding:12px;text-align:center;color:var(--text3);font-size:12px;">保存された試合はありません</div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: TEAM REGISTRATION ===== -->
+<div class="screen" id="screen-teams">
+  <div class="nav">
+    <div class="nav-row">
+      <button class="btn sm ghost" onclick="showScreen('screen-menu')">← 戻る</button>
+      <span class="nav-title">チーム・選手登録</span>
+      <button class="btn sm primary" onclick="saveTeams()">保存</button>
+    </div>
+  </div>
+  <div style="padding:10px 12px 0;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--surface);border:1px dashed var(--blue);border-radius:var(--radius);padding:10px 14px;">
+      <span style="font-size:20px;">📥</span>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--blue);">Excelから読み込む</div>
+        <div style="font-size:11px;color:var(--text3);">team_registration_form.xlsx を選択</div>
+      </div>
+      <input type="file" accept=".xlsx" id="xl-import-input" style="display:none;" onchange="importFromXlsx(this)">
+    </label>
+  </div>
+  <div class="team-list" id="team-list"></div>
+  <div style="padding:12px;">
+    <button class="btn full success" onclick="addTeam()" id="add-team-btn">＋ チームを追加</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: GAME SETUP ===== -->
+<div class="screen" id="screen-setup">
+  <div class="nav">
+    <div class="nav-row">
+      <button class="btn sm ghost" onclick="showScreen('screen-menu')">← 戻る</button>
+      <span class="nav-title">試合設定</span>
+      <button class="btn sm primary" onclick="goToOrder()">次へ →</button>
+    </div>
+  </div>
+  <div class="setup-form">
+    <div>
+      <label>試合日</label>
+      <input type="date" id="setup-date">
+    </div>
+    <div>
+      <label>イニング数</label>
+      <select id="setup-innings">
+        <option value="5">5回</option>
+        <option value="6" selected>6回</option>
+        <option value="7">7回</option>
+        <option value="8">8回</option>
+        <option value="9">9回</option>
+      </select>
+    </div>
+    <div>
+      <label>投球数制限（学童野球ルール）</label>
+      <select id="setup-pitch-limit">
+        <option value="0">制限なし</option>
+        <option value="60" selected>60球制限</option>
+        <option value="70">70球制限</option>
+      </select>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px;padding:0 2px;">
+        ※制限球数到達後、その打者との対戦が終了するまで続投可能です
+      </div>
+    </div>
+    <div>
+      <label>先攻チーム</label>
+      <select id="setup-away"></select>
+    </div>
+    <div>
+      <label>後攻チーム</label>
+      <select id="setup-home"></select>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: ORDER ===== -->
+<div class="screen" id="screen-order">
+  <div class="nav">
+    <div class="nav-row">
+      <button class="btn sm ghost" onclick="showScreen('screen-setup')">← 戻る</button>
+      <span class="nav-title" id="order-nav-title">オーダー設定</span>
+      <button class="btn sm primary" onclick="nextOrderTeam()">次へ →</button>
+    </div>
+  </div>
+  <div style="padding:8px 12px 4px;">
+    <div class="tabs">
+      <div class="tab active" id="tab-away" onclick="switchOrderTab('away')">先攻（表）</div>
+      <div class="tab" id="tab-home" onclick="switchOrderTab('home')">後攻（裏）</div>
+    </div>
+  </div>
+  <div id="order-content"></div>
+  <div style="padding:12px;">
+    <button class="btn full success" onclick="startGame()">⚾ 試合開始</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: SCORE MAIN ===== -->
+<div class="screen" id="screen-score">
+
+  <!-- Header: score -->
+  <div class="score-header">
+    <div class="sh-teams">
+      <div class="sh-team-name" id="sh-away-name">チームA</div>
+      <div class="sh-score">
+        <span id="sh-away-score">0</span>
+        <span class="sh-vs">-</span>
+        <span id="sh-home-score">0</span>
+      </div>
+      <div class="sh-team-name" id="sh-home-name">チームB</div>
+    </div>
+    <div class="sh-badges">
+      <span class="badge"><b id="bi-inn">1</b>回 <b id="bi-tb">表</b></span>
+      <span class="badge"><b id="bi-out">0</b> アウト</span>
+      <span class="badge">打者 <b id="bi-bat-num">1</b>番</span>
+      <span class="badge" id="badge-balls">B<b id="bi-balls">0</b> S<b id="bi-strikes">0</b></span>
+      <span class="badge"><span class="autosave-dot" id="autosave-dot"></span><span id="autosave-label" style="font-size:10px;color:var(--text3);">自動保存</span></span>
+      <span class="sec-badge" onclick="showPinMenu()" title="PIN設定・ロック">🔒</span>
+    </div>
+  </div>
+
+  <!-- Pitch limit warning banner -->
+  <div id="pitch-limit-banner" style="display:none;background:#b71c1c;color:#fff;padding:8px 12px;gap:8px;align-items:center;font-size:12px;line-height:1.4;"></div>
+
+  <!-- Pitch count bar (always visible) -->
+  <div class="pitch-header-bar">
+    <div class="pitch-header-sbo">
+      <div class="sbo-grp">
+        <span class="sbo-lbl">B</span>
+        <div class="sbo-d" id="ph-b0"></div>
+        <div class="sbo-d" id="ph-b1"></div>
+        <div class="sbo-d" id="ph-b2"></div>
+      </div>
+      <div class="sbo-grp">
+        <span class="sbo-lbl">S</span>
+        <div class="sbo-d" id="ph-s0"></div>
+        <div class="sbo-d" id="ph-s1"></div>
+      </div>
+      <div class="sbo-grp">
+        <span class="sbo-lbl">O</span>
+        <div class="sbo-d" id="ph-o0"></div>
+        <div class="sbo-d" id="ph-o1"></div>
+      </div>
+    </div>
+    <div class="pitch-header-right">
+      <div class="pitch-header-label">投球数</div>
+      <div class="pitch-header-num" id="ph-pitch-num">0</div>
+      <div class="pitch-header-name" id="ph-pitcher-name">---</div>
+    </div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="scoreboard-wrap">
+    <table class="scoreboard" id="scoreboard-table"></table>
+  </div>
+
+  <!-- SBO (kept minimal, detailed in pitch bar above) -->
+  <div class="sbo-row" style="display:none;">
+    <span class="sbo-label" style="font-size:9px;">S</span>
+    <div class="sbo-group" id="sbo-s"></div>
+    <div class="sbo-sep"></div>
+    <span class="sbo-label" style="font-size:9px;">B</span>
+    <div class="sbo-group" id="sbo-b"></div>
+    <div class="sbo-sep"></div>
+    <span class="sbo-label" style="font-size:9px;">O</span>
+    <div class="sbo-group" id="sbo-o"></div>
+    <div style="flex:1;"></div>
+    <div class="pitcher-info">
+      投手: <b id="pitcher-name-disp">---</b>
+      <span class="pitch-count" id="pitch-count-disp"> 0球</span>
+    </div>
+  </div>
+
+  <!-- Diamond -->
+  <div class="diamond-wrap">
+    <div class="outs-row">
+      <span style="font-size:10px;color:rgba(255,255,255,.6);margin-right:2px;">OUT</span>
+      <div class="out-dot" id="od1"></div>
+      <div class="out-dot" id="od2"></div>
+    </div>
+    <div class="diamond" id="diamond">
+      <div class="base" id="b-second" onclick="tapBase(2)"></div>
+      <div class="base" id="b-third" onclick="tapBase(3)"></div>
+      <div class="base" id="b-first" onclick="tapBase(1)"></div>
+      <div class="base" id="b-home"></div>
+    </div>
+    <div class="batter-diamond-info">
+      <div class="batter-diamond-name" id="disp-batter-name">---</div>
+      <div class="batter-diamond-detail" id="disp-batter-detail">打数0 / 安打0</div>
+    </div>
+  </div>
+
+  <!-- Pitch input -->
+  <div class="btn-section">
+    <div class="section-label">投球入力（カウント）</div>
+    <div class="pitch-btns">
+      <button class="pitch-btn s-btn" onclick="addPitch('S')">
+        <span class="pitch-btn-main">S</span>
+        <span class="pitch-btn-sub">ストライク</span>
+      </button>
+      <button class="pitch-btn b-btn" onclick="addPitch('B')">
+        <span class="pitch-btn-main">B</span>
+        <span class="pitch-btn-sub">ボール</span>
+      </button>
+      <button class="pitch-btn f-btn" onclick="addPitch('F')">
+        <span class="pitch-btn-main">F</span>
+        <span class="pitch-btn-sub">ファウル</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- At bat results -->
+  <div class="btn-section">
+    <div class="section-label">打席結果（確定）</div>
+    <div class="atbat-grid">
+      <button class="btn hit atbat-btn" onclick="openHitTypeModal('single')">
+        <span class="ab-icon">1</span><span class="ab-label">単打</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="openHitTypeModal('double')">
+        <span class="ab-icon">2</span><span class="ab-label">二塁打</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="openHitTypeModal('triple')">
+        <span class="ab-icon">3</span><span class="ab-label">三塁打</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="atBat('hr')">
+        <span class="ab-icon">HR</span><span class="ab-label">本塁打</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="atBat('walk')">
+        <span class="ab-icon">四</span><span class="ab-label">四球</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="atBat('hbp')">
+        <span class="ab-icon">死</span><span class="ab-label">死球</span>
+      </button>
+      <button class="btn warn atbat-btn" onclick="atBat('error')">
+        <span class="ab-icon">E</span><span class="ab-label">エラー</span>
+      </button>
+      <button class="btn hit atbat-btn" onclick="openSacTypeModal()">
+        <span class="ab-icon">犠</span><span class="ab-label">犠打/飛</span>
+      </button>
+      <button class="btn out atbat-btn" onclick="atBat('so')">
+        <span class="ab-icon">K</span><span class="ab-label">三振</span>
+      </button>
+      <button class="btn out atbat-btn" onclick="atBat('go')">
+        <span class="ab-icon">G</span><span class="ab-label">ゴロ</span>
+      </button>
+      <button class="btn out atbat-btn" onclick="atBat('fo')">
+        <span class="ab-icon">F</span><span class="ab-label">フライ</span>
+      </button>
+      <button class="btn out atbat-btn" onclick="atBat('forcedout')" style="border-style:dashed;opacity:.85;">
+        <span class="ab-icon" style="font-size:13px;">⚠️</span><span class="ab-label">強制OUT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div class="btn-section">
+    <div class="section-label">イベント（打席外）</div>
+    <div class="btn-grid-5" style="margin-bottom:5px;">
+      <button class="btn evt sm" onclick="openEventModal('steal')">盗塁</button>
+      <button class="btn evt sm" onclick="openEventModal('cs')">盗塁刺</button>
+      <button class="btn evt sm" onclick="openEventModal('pb')">PB</button>
+      <button class="btn evt sm" onclick="openEventModal('wp')">WP</button>
+      <button class="btn evt sm" onclick="openEventModal('balk')">ボーク</button>
+    </div>
+    <div class="btn-grid-2">
+      <button class="btn sm" style="color:#c07000;border-color:rgba(192,112,0,.4);" onclick="openTimeoutModal()">⏱ タイム記録</button>
+      <button class="btn sm ghost" onclick="openSubModal()">🔄 選手交代・守備変更</button>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="btn-section">
+    <div class="btn-grid-4" style="margin-bottom:5px;">
+      <button class="btn sm ghost" onclick="undoLast()">↩ 戻す</button>
+      <button class="btn sm" style="color:var(--green);border-color:rgba(26,138,58,.4);" onclick="manualEndInning()">チェンジ</button>
+      <button class="btn sm" style="color:var(--purple);border-color:rgba(123,63,181,.4);" onclick="openPitcherModal()">投手交代</button>
+      <button class="btn sm" style="color:var(--blue);border-color:rgba(26,111,181,.4);" onclick="showSummary()">集計</button>
+    </div>
+    <button class="btn sm full danger" onclick="confirmEndGame()">⏹ 試合終了</button>
+  </div>
+
+  <!-- Log -->
+  <div class="log-section" onclick="toggleLog()">
+    <div class="log-header">
+      <span style="font-size:10px;color:var(--text3);">記録ログ</span>
+      <span class="log-toggle" id="log-toggle-btn">▼ 展開</span>
+    </div>
+    <div class="log-inner" id="log-list"></div>
+  </div>
+
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Event modal -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal-panel">
+    <div class="modal-title" id="event-modal-title">ランナー選択</div>
+    <div class="runner-opts" id="event-runner-opts"></div>
+    <div id="event-action-btns"></div>
+    <button class="modal-cancel" onclick="closeModal('modal-event')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Player change modal (投手交代・選手交代・守備変更) -->
+<div class="modal-overlay center" id="modal-pitcher">
+  <div class="modal-panel center-panel" style="max-height:88vh;overflow-y:auto;">
+    <div class="modal-title" id="pch-modal-title">選手交代・守備変更</div>
+    <div class="modal-sub" id="pitcher-modal-sub"></div>
+
+    <!-- Tabs -->
+    <div class="tabs" style="margin-bottom:10px;">
+      <div class="tab active" id="pch-tab-pitcher" onclick="switchPchTab('pitcher')">投手交代</div>
+      <div class="tab" id="pch-tab-player" onclick="switchPchTab('player')">選手交代</div>
+      <div class="tab" id="pch-tab-pos" onclick="switchPchTab('pos')">守備変更</div>
+    </div>
+
+    <!-- 投手交代 -->
+    <div id="pch-panel-pitcher">
+      <div class="section-label">新投手を選択</div>
+      <div class="pitcher-list" id="pitcher-list"></div>
+      <div style="margin-bottom:8px;">
+        <div class="section-label">球数を引き継ぐ場合（任意）</div>
+        <div class="num-input-row">
+          <input type="number" id="pitcher-start-count" min="0" max="200" placeholder="0">
+          <span>球から開始</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 選手交代 -->
+    <div id="pch-panel-player" style="display:none;">
+      <div style="margin-bottom:8px;">
+        <div class="section-label">退く選手（打順番号 1〜9）</div>
+        <select id="sub-out-order" style="width:100%;margin-bottom:6px;" onchange="updateSubOutPlayer()">
+          <option value="">-- 打順を選択 --</option>
+        </select>
+        <div id="sub-out-name" style="font-size:12px;color:var(--text3);padding:0 2px;"></div>
+      </div>
+      <div>
+        <div class="section-label">入る選手（登録メンバーから）</div>
+        <select id="sub-in-player" style="width:100%;margin-bottom:6px;">
+          <option value="">-- 選手を選択 --</option>
+        </select>
+        <select id="sub-in-pos" style="width:100%;">
+          <option value="">-- 守備位置 --</option>
+        </select>
+      </div>
+      <button class="btn full primary" style="margin-top:10px;" onclick="doPlayerSub()">選手交代を確定</button>
+    </div>
+
+    <!-- 守備変更 -->
+    <div id="pch-panel-pos" style="display:none;">
+      <div class="section-label">選手を選択</div>
+      <select id="pos-change-player" style="width:100%;margin-bottom:8px;">
+        <option value="">-- 選手を選択 --</option>
+      </select>
+      <div class="section-label">新しい守備位置</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:10px;" id="pos-btn-grid"></div>
+      <button class="btn full primary" onclick="doPosChange()">守備変更を確定</button>
+    </div>
+
+    <button class="modal-cancel" onclick="closeModal('modal-pitcher')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Summary modal -->
+<div class="modal-overlay center" id="modal-summary">
+  <div class="modal-panel center-panel" style="max-height:85vh;overflow-y:auto;">
+    <div class="modal-title">試合集計</div>
+    <div id="summary-content"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn full" onclick="saveGame()">💾 保存</button>
+      <button class="btn full primary" onclick="downloadXlsx()">📥 XLSダウンロード</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-summary')">閉じる</button>
+  </div>
+</div>
+
+<!-- Add runner manually confirm -->
+<div class="modal-overlay center" id="modal-endgame">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">試合終了</div>
+    <div class="modal-sub">終了理由を選択してください</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+      <button class="btn full" onclick="endGame('規定回終了')">✅ 規定回終了</button>
+      <button class="btn full" onclick="endGame('コールドゲーム')">🏳️ コールドゲーム</button>
+      <button class="btn full" onclick="endGame('時間制限')">⏱️ 時間制限</button>
+      <button class="btn full" onclick="endGame('悪天候')">🌧️ 悪天候による中止</button>
+      <button class="btn full" onclick="endGame('その他')">📝 その他</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-endgame')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Add runner manually confirm -->
+<div class="modal-overlay center" id="modal-addrunner">
+  <div class="modal-panel center-panel">
+    <div class="modal-title" id="addrunner-title">ランナーを置く</div>
+    <div class="modal-sub">この塁にランナーを置きますか？</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn full" onclick="closeModal('modal-addrunner')">キャンセル</button>
+      <button class="btn full primary" onclick="confirmAddRunner()">置く</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hit direction modal (単打/二塁打/三塁打 方向) -->
+<div class="modal-overlay center" id="modal-hit-dir">
+  <div class="modal-panel center-panel">
+    <div class="modal-title" id="hit-dir-title">ヒット方向</div>
+    <div class="modal-sub" id="hit-dir-sub"></div>
+    <!-- Bunt sub-row (単打のみ) -->
+    <div id="hit-dir-bunt-row" style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="btn hit sm" style="flex:1;" onclick="setHitSubtype('normal')" id="hd-btn-normal">通常</button>
+      <button class="btn hit sm" style="flex:1;" onclick="setHitSubtype('bunt')" id="hd-btn-bunt">バント</button>
+      <button class="btn hit sm" style="flex:1;" onclick="setHitSubtype('safety')" id="hd-btn-safety">セーフティー</button>
+    </div>
+    <!-- Field grid -->
+    <div style="position:relative;width:100%;max-width:280px;margin:0 auto 10px;">
+      <!-- Outfield row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;">
+        <button class="btn sm" id="hd-左" onclick="confirmHitDir('左')">左 (LF)</button>
+        <button class="btn sm" id="hd-中" onclick="confirmHitDir('中')">中 (CF)</button>
+        <button class="btn sm" id="hd-右" onclick="confirmHitDir('右')">右 (RF)</button>
+      </div>
+      <!-- Infield row 1 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:5px;">
+        <button class="btn sm" id="hd-三" onclick="confirmHitDir('三')">三 (3B)</button>
+        <button class="btn sm" id="hd-遊" onclick="confirmHitDir('遊')">遊 (SS)</button>
+        <button class="btn sm" id="hd-二" onclick="confirmHitDir('二')">二 (2B)</button>
+        <button class="btn sm" id="hd-一" onclick="confirmHitDir('一')">一 (1B)</button>
+      </div>
+      <!-- Battery -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+        <button class="btn sm" id="hd-投" onclick="confirmHitDir('投')">投 (P)</button>
+        <button class="btn sm" id="hd-捕" onclick="confirmHitDir('捕')">捕 (C)</button>
+      </div>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-hit-dir')">キャンセル</button>
+  </div>
+</div>
+
+<!-- HR type modal -->
+<div class="modal-overlay center" id="modal-hr-type">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">本塁打 — 方向</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;">
+      <button class="btn full hit" onclick="confirmHRType('右越')">→ 右越</button>
+      <button class="btn full hit" onclick="confirmHRType('中越')">↑ 中越</button>
+      <button class="btn full hit" onclick="confirmHRType('左越')">← 左越</button>
+      <button class="btn full warn" onclick="confirmHRType('ランニング')">🏃 ランニングHR</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-hr-type')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Out position modal (ゴロ/フライ) -->
+<div class="modal-overlay center" id="modal-out-pos">
+  <div class="modal-panel center-panel">
+    <div class="modal-title" id="out-pos-title">アウト — 守備位置</div>
+    <div style="position:relative;width:100%;max-width:280px;margin:0 auto 10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:5px;">
+        <button class="btn sm" onclick="confirmOutPos('左')">左 (LF)</button>
+        <button class="btn sm" onclick="confirmOutPos('中')">中 (CF)</button>
+        <button class="btn sm" onclick="confirmOutPos('右')">右 (RF)</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:5px;">
+        <button class="btn sm" onclick="confirmOutPos('三')">三 (3B)</button>
+        <button class="btn sm" onclick="confirmOutPos('遊')">遊 (SS)</button>
+        <button class="btn sm" onclick="confirmOutPos('二')">二 (2B)</button>
+        <button class="btn sm" onclick="confirmOutPos('一')">一 (1B)</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+        <button class="btn sm" onclick="confirmOutPos('投')">投 (P)</button>
+        <button class="btn sm" onclick="confirmOutPos('捕')">捕 (C)</button>
+      </div>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-out-pos')">キャンセル</button>
+  </div>
+</div>
+
+<!-- SO type modal (空振り/見逃し) -->
+<div class="modal-overlay center" id="modal-so-type">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">三振 — 種別</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px;">
+      <button class="btn full out" onclick="confirmSOType('空振')">💨 空振り三振</button>
+      <button class="btn full out" onclick="confirmSOType('見逃')">👁 見逃し三振</button>
+    </div>
+    <button class="modal-cancel" onclick="confirmSOType('')">スキップ</button>
+  </div>
+</div>
+
+<!-- Sac type modal (犠打種別) -->
+<div class="modal-overlay center" id="modal-sac-type">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">犠打の種別</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;">
+      <button class="btn full hit" onclick="confirmSacType('sac')">⚾ 通常の犠打</button>
+      <button class="btn full hit" onclick="confirmSacType('squeeze')">🏃 スクイズ</button>
+      <button class="btn full hit" onclick="confirmSacType('sacfly')">🦅 犠牲フライ</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-sac-type')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Timeout modal -->
+<div class="modal-overlay center" id="modal-timeout">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">⏱ タイム記録</div>
+    <div class="modal-sub">どちらのタイムですか？</div>
+    <div style="margin-bottom:10px;">
+      <div class="section-label" style="margin-bottom:6px;">攻撃側（<span id="to-attack-name">チーム</span>）</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="btn hit sm" style="flex:1;" onclick="recordTimeout('attack','bench')">ベンチ要求</button>
+        <button class="btn hit sm" style="flex:1;" onclick="recordTimeout('attack','offense')">攻撃要求</button>
+      </div>
+      <div class="section-label" style="margin-bottom:6px;">守備側（<span id="to-defense-name">チーム</span>）</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn evt sm" style="flex:1;" onclick="recordTimeout('defense','bench')">ベンチ要求</button>
+        <button class="btn evt sm" style="flex:1;" onclick="recordTimeout('defense','defense')">守備要求</button>
+      </div>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-timeout')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Count mismatch confirmation modal -->
+<div class="modal-overlay center" id="modal-count-confirm">
+  <div class="modal-panel center-panel">
+    <div class="modal-title" id="ccm-title">⚠️ カウント確認</div>
+    <div style="background:var(--surface2);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px;text-align:center;">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:4px;" id="ccm-count-disp"></div>
+      <div style="font-size:12px;color:var(--text3);" id="ccm-msg"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button class="btn full primary" id="ccm-ok-btn" onclick="countConfirmOK()">そのまま確定する</button>
+      <button class="btn full ghost" onclick="closeModal('modal-count-confirm')">戻って修正する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Strikeout / 振り逃げ modal -->
+<div class="modal-overlay center" id="modal-so">
+  <div class="modal-panel center-panel">
+    <div class="modal-title">三振 — どちらですか？</div>
+    <div class="modal-sub" id="so-modal-sub"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;">
+      <button class="btn full out" onclick="confirmSO(false)">⚾ 三振アウト</button>
+      <button class="btn full hit" onclick="confirmSO(true)">🏃 振り逃げ（1塁へ）</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-so')">キャンセル</button>
+  </div>
+</div>
+
+<!-- Runner move modal -->
+<div class="modal-overlay center" id="modal-runner-move">
+  <div class="modal-panel center-panel">
+    <div class="modal-title" id="runner-move-title">ランナー操作</div>
+    <div class="modal-sub">進塁・帰塁・消去ができます</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;">
+      <button class="btn full hit" onclick="moveRunner(1)">➡️ 1つ進む（次の塁へ）</button>
+      <button class="btn full warn" onclick="moveRunner(-1)">⬅️ 1つ戻る（前の塁へ）</button>
+      <button class="btn full" onclick="moveRunner('score')">🏠 ホームイン（得点）</button>
+      <button class="btn full danger" onclick="moveRunner('remove')">✕ このランナーを消去</button>
+    </div>
+    <button class="modal-cancel" onclick="closeModal('modal-runner-move')">キャンセル</button>
+  </div>
+</div>
+
+<script>
+// =============================================
+// CONSTANTS & STATE
+// =============================================
+const MAX_TEAMS   = 12;
+const MAX_PLAYERS = 25;
+const POSITIONS   = ['投','捕','一','二','三','遊','左','中','右','DH'];
+
+let teams              = [];
+let gameState          = null;
+let orderSetupTab      = 'away';
+let pendingBaseClick   = null;
+let eventType          = null;
+let history            = [];
+let movingRunnerBase   = null;
+let _pendingSacSubtype = null;
+let _pendingOutType    = null;
+let _pendingHitType    = null;
+let _pendingHitSubtype = 'normal';
+let _pchTab            = 'pitcher';
+let _pchSide           = null;
+let _selectedNewPos    = null;
+let _logExpanded       = false;
+let _soTypeCallback    = null;
+let _pendingCountAction = null;
+let eventSelectedRunner = null;
+
+// DOM cache
+const _dom  = {};
+const _prev = {};
+function $id(id){ return _dom[id] || (_dom[id] = document.getElementById(id)); }
+function setTxt(id, val){ if(_prev[id]===String(val)) return; _prev[id]=String(val); const e=$id(id); if(e) e.textContent=val; }
+function setCls(id, val){ if(_prev['c_'+id]===val) return; _prev['c_'+id]=val; const e=$id(id); if(e) e.className=val; }
+
+// =============================================
+// STORAGE (GAS cloud + localStorage fallback)
+// =============================================
+const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+
+let _sessionPin = '';
+let _gasOnline  = false;
+let _autoSaveTimer = null;
+
+async function gasRequest(action, body) {
+  body = body || {};
+  const payload = Object.assign({ action, pin: _sessionPin }, body);
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+
+async function checkOnline() {
+  if (!GAS_URL || GAS_URL.indexOf('YOUR_DEPLOYMENT_ID') >= 0) {
+    _gasOnline = false;
+    _updateOnlineBadge();
+    return false;
+  }
+  try {
+    const r = await fetch(GAS_URL + '?action=ping');
+    const j = await r.json();
+    _gasOnline = j.ok === true;
+  } catch(e) { _gasOnline = false; }
+  _updateOnlineBadge();
+  return _gasOnline;
+}
+
+function _updateOnlineBadge() {
+  const b = $id('online-badge');
+  if (!b) return;
+  b.textContent = _gasOnline ? '🟢 オンライン' : '🔴 オフライン';
+  b.style.color  = _gasOnline ? 'var(--green)' : 'var(--red)';
+}
+
+function loadStorage() {
+  try { teams = JSON.parse(localStorage.getItem('bb_teams') || '[]'); } catch(e) { teams = []; }
+}
+
+function saveTeamsToStorage() {
+  localStorage.setItem('bb_teams', JSON.stringify(teams));
+  if (_gasOnline && _sessionPin) gasRequest('saveTeams', { teams }).catch(function(){});
+}
+
+function getSavedGames() {
+  try { return JSON.parse(localStorage.getItem('bb_games') || '[]'); } catch(e) { return []; }
+}
+
+function setSavedGames(games) {
+  localStorage.setItem('bb_games', JSON.stringify(games));
+}
+
+async function saveGame() {
+  if (!gameState) return;
+  gameState.savedAt = new Date().toLocaleString('ja-JP');
+  const games = getSavedGames();
+  const existing = games.findIndex(function(g) {
+    return g.config && g.config.date === gameState.config.date &&
+           g.config.awayName === gameState.config.awayName &&
+           g.config.homeName === gameState.config.homeName;
+  });
+  if (existing >= 0) games[existing] = gameState; else games.push(gameState);
+  setSavedGames(games);
+  if (_gasOnline && _sessionPin) {
+    try { const r = await gasRequest('saveGame', { game: gameState }); if(r.ok){ showToast('💾 クラウドに保存しました'); return; } } catch(e) {}
+    showToast('💾 ローカルに保存しました');
+  } else {
+    showToast('💾 ローカルに保存しました');
+  }
+}
+
+function triggerAutoSave() {
+  if (!gameState) return;
+  clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(function() {
+    gameState.savedAt = new Date().toLocaleString('ja-JP');
+    const games = getSavedGames();
+    const existing = games.findIndex(function(g) {
+      return g.config && g.config.date === gameState.config.date &&
+             g.config.awayName === gameState.config.awayName &&
+             g.config.homeName === gameState.config.homeName;
+    });
+    if (existing >= 0) games[existing] = gameState; else games.push(gameState);
+    setSavedGames(games);
+    const dot = $id('autosave-dot');
+    if (dot) { dot.classList.add('show'); setTimeout(function(){ dot.classList.remove('show'); }, 1500); }
+  }, 800);
+}
+
+// =============================================
+// PIN LOCK
+// =============================================
+const PIN_STORAGE_VERSION = 'v4';
+const PIN_LEN_MIN  = 4;
+const PIN_LEN_MAX  = 6;
+const MAX_ATTEMPTS = 5;
+let _pinBuffer     = '';
+let _loginAttempts = 0;
+let _pinMode       = 'login';
+let _pinSetup1Val  = '';
+
+function _checkPinVersion() {
+  var savedVer = localStorage.getItem('bb_pin_version');
+  if (savedVer !== PIN_STORAGE_VERSION) {
+    // バージョンが違う → 古いPINを削除して初回設定へ
+    localStorage.removeItem('bb_pin_hash');
+    localStorage.setItem('bb_pin_version', PIN_STORAGE_VERSION);
+  }
+}
+
+// ハッシュ生成・保存・照合
+async function _hashPin(pin) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + 'bb_salt_2025'));
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buf)));
+}
+async function _savePin(pin) {
+  localStorage.setItem('bb_pin_hash', await _hashPin(pin));
+}
+function _hasPinSaved() { return !!localStorage.getItem('bb_pin_hash'); }
+
+// ロック画面表示
+function showLock() {
+  _checkPinVersion(); // 古いPINを自動クリア
+  _pinBuffer = ''; _loginAttempts = 0; _pinSetup1Val = '';
+  _updatePinDisplay(); _pinMsg('');
+  $id('screen-lock').style.display = 'flex';
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+
+  if (_hasPinSaved()) {
+    _pinMode = 'login';
+    _setLockUI('PINを入力してください', true);
+  } else {
+    _pinMode = 'setup1';
+    _setLockUI('初回設定：4〜6桁のPINを入力してください', false);
+  }
+}
+
+function hideLock() { $id('screen-lock').style.display = 'none'; }
+
+function _setLockUI(text, showReset) {
+  var s = $id('lock-sub'); if (s) s.textContent = text;
+  var r = document.getElementById('lock-reset-link');
+  if (r) r.style.display = showReset ? 'block' : 'none';
+}
+
+// キーパッド
+function pinPress(n) {
+  if (_pinBuffer.length >= PIN_LEN_MAX) return;
+  _pinBuffer += String(n);
+  _updatePinDisplay();
+  if (_pinBuffer.length >= PIN_LEN_MIN) {
+    clearTimeout(pinPress._t);
+    pinPress._t = setTimeout(_evalPin, 600);
+  }
+}
+function pinBack() {
+  _pinBuffer = _pinBuffer.slice(0, -1);
+  clearTimeout(pinPress._t);
+  _updatePinDisplay();
+}
+function _updatePinDisplay() {
+  var len = Math.max(PIN_LEN_MIN, _pinBuffer.length);
+  var el  = $id('pin-display'); if (!el) return;
+  el.innerHTML = '';
+  for (var i = 0; i < len; i++) {
+    var d = document.createElement('div');
+    d.className = 'pin-dot' + (i < _pinBuffer.length ? ' filled' : '');
+    el.appendChild(d);
+  }
+}
+function _pinMsg(msg) { var e = $id('lock-msg'); if (e) e.textContent = msg; }
+
+// PIN評価
+async function _evalPin() {
+  var pin = _pinBuffer; _pinBuffer = ''; _updatePinDisplay();
+  if (pin.length < PIN_LEN_MIN) { _pinMsg('4桁以上入力してください'); return; }
+
+  // 初回設定：1回目
+  if (_pinMode === 'setup1') {
+    _pinSetup1Val = pin;
+    _pinMode = 'setup2';
+    _setLockUI('もう一度同じPINを入力してください', false);
+    _pinMsg('');
+    return;
+  }
+
+  // 初回設定：2回目（確認）
+  if (_pinMode === 'setup2') {
+    if (pin !== _pinSetup1Val) {
+      _pinMsg('PINが一致しません。最初からやり直します');
+      setTimeout(function() {
+        _pinMode = 'setup1'; _pinSetup1Val = '';
+        _setLockUI('初回設定：4〜6桁のPINを入力してください', false);
+        _pinMsg('');
+      }, 1500);
+      return;
+    }
+    await _savePin(pin);
+    _sessionPin = pin;
+    _pinMsg('✅ PIN設定完了しました');
+    setTimeout(function() { hideLock(); _bootApp(); }, 1000);
+    return;
+  }
+
+  // ログイン：保存済みハッシュと照合
+  var stored = localStorage.getItem('bb_pin_hash');
+  if (!stored) { hideLock(); _bootApp(); return; }
+  var inputHash = await _hashPin(pin);
+  if (inputHash === stored) {
+    _sessionPin = pin; _loginAttempts = 0;
+    _pinMsg('✅ ログインしました');
+    setTimeout(function() { hideLock(); _bootApp(); }, 500);
+  } else {
+    _loginAttempts++;
+    var remain = MAX_ATTEMPTS - _loginAttempts;
+    if (remain <= 0) {
+      _pinMsg('⛔ ' + MAX_ATTEMPTS + '回失敗。30秒後に再試行してください');
+      document.querySelectorAll('.pin-key').forEach(function(b){ b.disabled = true; });
+      setTimeout(function() {
+        document.querySelectorAll('.pin-key').forEach(function(b){ b.disabled = false; });
+        _loginAttempts = 0; _pinMsg('');
+      }, 30000);
+    } else {
+      _pinMsg('PINが違います（残り' + remain + '回）');
+      document.querySelectorAll('.pin-dot').forEach(function(d){
+        d.classList.add('error');
+        setTimeout(function(){ d.classList.remove('error'); }, 500);
+      });
+    }
+  }
+}
+
+// リセット（ロック画面の「PINを忘れた場合」リンク）
+function showPinReset() {
+  if (confirm('PINをリセットします。\n新しいPINを設定する画面になります。\n続けますか？')) {
+    // PINハッシュとバージョンを両方削除
+    localStorage.removeItem('bb_pin_hash');
+    localStorage.removeItem('bb_pin_version');
+    // セッションクリア
+    _sessionPin = ''; _loginAttempts = 0; _pinBuffer = '';
+    // 即座に初回設定モードへ切り替え（reloadなし）
+    _pinMode = 'setup1'; _pinSetup1Val = '';
+    _updatePinDisplay();
+    _setLockUI('初回設定：4〜6桁のPINを入力してください', false);
+    _pinMsg('リセットしました。新しいPINを入力してください');
+  }
+}
+
+// 🔒ボタン（スコア画面）
+function lockApp() {
+  _sessionPin = '';
+  showLock();
+  showToast('🔒 ロックしました');
+}
+
+// =============================================
+// BOOT
+// =============================================
+async function _bootApp() {
+  loadStorage();
+  if (_gasOnline && _sessionPin) {
+    try {
+      const r = await gasRequest('loadTeams');
+      if (r.ok && r.teams && r.teams.length) { teams = r.teams; localStorage.setItem('bb_teams', JSON.stringify(teams)); }
+    } catch(e) {}
+    try {
+      const r = await gasRequest('loadGames');
+      if (r.ok && r.games && r.games.length) {
+        const local = getSavedGames();
+        r.games.forEach(function(cg) {
+          const idx = local.findIndex(function(lg) {
+            return lg.config && lg.config.date === cg.config.date &&
+                   lg.config.awayName === cg.config.awayName &&
+                   lg.config.homeName === cg.config.homeName;
+          });
+          if (idx >= 0) local[idx] = cg; else local.push(cg);
+        });
+        setSavedGames(local);
+      }
+    } catch(e) {}
+  }
+  if (!teams.length) {
+    for (let t = 0; t < 2; t++) {
+      const players = [];
+      for (let i = 0; i < 25; i++) players.push({ num: '', name: '', pos: POSITIONS[i % POSITIONS.length] });
+      teams.push({ name: '', players });
+    }
+  }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  document.head.appendChild(s);
+  renderMenu();
+  showScreen('screen-menu');
+}
+
+// =============================================
+// SCREEN MANAGEMENT
+// =============================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  if (id === 'screen-menu')  renderMenu();
+  if (id === 'screen-teams') renderTeamList();
+  if (id === 'screen-setup') renderSetupForm();
+}
+
+function showToast(msg) {
+  const t = $id('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
+function toggleLog() {
+  _logExpanded = !_logExpanded;
+  const inner = $id('log-list');
+  const btn   = $id('log-toggle-btn');
+  if (inner) inner.classList.toggle('expanded', _logExpanded);
+  if (btn)   btn.textContent = _logExpanded ? '▲ 閉じる' : '▼ 展開';
+  if (_logExpanded) renderLog(true);
+}
+
+// =============================================
+// MENU
+// =============================================
+function renderMenu() {
+  const games = getSavedGames();
+  const el    = $id('saved-list');
+  if (!el) return;
+  el.innerHTML = '';
+  if (!games.length) {
+    const d = document.createElement('div');
+    d.style.cssText = 'padding:12px;text-align:center;color:var(--text3);font-size:12px;';
+    d.textContent = '保存された試合はありません';
+    el.appendChild(d); return;
+  }
+  games.forEach(function(g, i) {
+    const cfg = g.config || {}, sc = g.score || {};
+    const item = document.createElement('div'); item.className = 'saved-item';
+    const info = document.createElement('div'); info.className = 'saved-item-info';
+    info.onclick = (function(idx){ return function(){ loadGame(idx); }; })(i);
+    const h4 = document.createElement('h4');
+    h4.textContent = (cfg.awayName || '') + ' vs ' + (cfg.homeName || '');
+    const p = document.createElement('p');
+    p.textContent = (cfg.date || '') + ' / ' + (sc.away || 0) + '-' + (sc.home || 0) + ' / ' + (g.savedAt || '');
+    info.appendChild(h4); info.appendChild(p);
+    const acts = document.createElement('div'); acts.className = 'saved-item-actions';
+    const xlsBtn = document.createElement('button'); xlsBtn.className = 'btn xs'; xlsBtn.textContent = 'XLS';
+    xlsBtn.onclick = (function(idx){ return function(){ downloadGameXlsx(idx); }; })(i);
+    const delBtn = document.createElement('button'); delBtn.className = 'btn xs danger'; delBtn.textContent = '削除';
+    delBtn.onclick = (function(idx){ return function(){ deleteGame(idx); }; })(i);
+    acts.appendChild(xlsBtn); acts.appendChild(delBtn);
+    item.appendChild(info); item.appendChild(acts); el.appendChild(item);
+  });
+}
+
+function deleteGame(i) {
+  const games = getSavedGames(); games.splice(i, 1); setSavedGames(games); renderMenu();
+}
+function loadGame(i) {
+  const games = getSavedGames(); gameState = games[i]; history = [];
+  showScreen('screen-score'); renderScore();
+}
+
+// =============================================
+// TEAM REGISTRATION
+// =============================================
+function renderTeamList() {
+  const el = $id('team-list');
+  if (!el) return;
+  el.innerHTML = '';
+  teams.forEach(function(t, ti) {
+    const card = document.createElement('div');
+    card.className = 'team-card'; card.id = 'team-card-' + ti;
+    const hdr = document.createElement('div'); hdr.className = 'team-card-header';
+    hdr.onclick = (function(idx){ return function(){ toggleTeamCard(idx); }; })(ti);
+    const h3 = document.createElement('h3');
+    h3.textContent = '#' + (ti+1) + ' ' + (t.name || '（未設定）');
+    const sp = document.createElement('span');
+    sp.style.cssText = 'font-size:12px;color:var(--text3);';
+    sp.textContent = t.players.filter(function(p){ return p.name; }).length + '人 ▾';
+    hdr.appendChild(h3); hdr.appendChild(sp);
+    const body = document.createElement('div'); body.className = 'team-card-body';
+    const nw = document.createElement('div'); nw.style.marginBottom = '8px';
+    const nlbl = document.createElement('label'); nlbl.textContent = 'チーム名';
+    const nin = document.createElement('input');
+    nin.type = 'text'; nin.value = t.name || ''; nin.placeholder = 'チーム名';
+    (function(idx, head){ nin.oninput = function(){
+      teams[idx].name = this.value;
+      head.textContent = '#' + (idx+1) + ' ' + (this.value || '（未設定）');
+    }; })(ti, h3);
+    nw.appendChild(nlbl); nw.appendChild(nin); body.appendChild(nw);
+    t.players.forEach(function(p, pi) {
+      const row = document.createElement('div'); row.className = 'player-row';
+      const n1 = document.createElement('input');
+      n1.className = 'player-num'; n1.type = 'number'; n1.value = p.num || '';
+      n1.placeholder = '#'; n1.min = '0'; n1.max = '99';
+      (function(a,b){ n1.oninput = function(){ teams[a].players[b].num = this.value; }; })(ti,pi);
+      const n2 = document.createElement('input');
+      n2.className = 'player-name'; n2.type = 'text'; n2.value = p.name || ''; n2.placeholder = '選手名';
+      (function(a,b){ n2.oninput = function(){ teams[a].players[b].name = this.value; }; })(ti,pi);
+      const sel = document.createElement('select'); sel.className = 'player-pos';
+      POSITIONS.forEach(function(pos) {
+        const opt = document.createElement('option'); opt.value = pos; opt.textContent = pos;
+        if (p.pos === pos) opt.selected = true; sel.appendChild(opt);
+      });
+      (function(a,b){ sel.onchange = function(){ teams[a].players[b].pos = this.value; }; })(ti,pi);
+      row.appendChild(n1); row.appendChild(n2); row.appendChild(sel); body.appendChild(row);
+    });
+    const ab = document.createElement('button'); ab.className = 'btn sm full'; ab.style.marginTop = '4px'; ab.textContent = '＋ 選手追加';
+    (function(idx){ ab.onclick = function(){ addPlayerRow(idx); }; })(ti);
+    const db = document.createElement('button'); db.className = 'btn sm danger'; db.style.marginTop = '4px'; db.textContent = 'チーム削除';
+    (function(idx){ db.onclick = function(){ removeTeam(idx); }; })(ti);
+    body.appendChild(ab); body.appendChild(db);
+    card.appendChild(hdr); card.appendChild(body); el.appendChild(card);
+  });
+  const addBtn = $id('add-team-btn');
+  if (addBtn) addBtn.style.display = teams.length >= MAX_TEAMS ? 'none' : 'flex';
+}
+
+function toggleTeamCard(i) {
+  const el = document.getElementById('team-card-' + i);
+  if (el) el.classList.toggle('open');
+}
+
+function addTeam() {
+  if (teams.length >= MAX_TEAMS) { showToast('最大12チームまでです'); return; }
+  const players = [];
+  for (let i = 0; i < 25; i++) players.push({ num: '', name: '', pos: POSITIONS[i % POSITIONS.length] });
+  teams.push({ name: '', players });
+  renderTeamList();
+  setTimeout(function(){ toggleTeamCard(teams.length - 1); }, 50);
+}
+
+function removeTeam(i) { teams.splice(i, 1); renderTeamList(); }
+
+function addPlayerRow(ti) {
+  if (teams[ti].players.length >= MAX_PLAYERS) { showToast('最大25人まで'); return; }
+  teams[ti].players.push({ num: '', name: '', pos: '投' });
+  renderTeamList();
+  setTimeout(function(){
+    const card = document.getElementById('team-card-' + ti);
+    if (card) { card.classList.add('open'); card.scrollIntoView({ behavior: 'smooth', block: 'end' }); }
+  }, 50);
+}
+
+function saveTeams() { saveTeamsToStorage(); showToast('チーム情報を保存しました'); }
+
+function importFromXlsx(input) {
+  const file = input.files[0]; if (!file) return;
+  const doImport = function() {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'uint8array' });
+        const ws = wb.Sheets['チーム登録'];
+        if (!ws) { showToast('「チーム登録」シートが見つかりません'); return; }
+        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        const imported = [];
+        let i = 0;
+        while (i < rows.length && imported.length < 12) {
+          const row = rows[i];
+          const cellB = String(row[1] || '').trim();
+          if (/^チーム\s*\d+/.test(cellB)) {
+            const teamName = String(row[3] || '').trim();
+            const players = [];
+            i += 2;
+            for (let pi = 0; pi < 25; pi++) {
+              const pr = rows[i + pi]; if (!pr) break;
+              players.push({ num: String(pr[2]||'').trim(), name: String(pr[3]||'').trim(), pos: String(pr[4]||'').trim() || '投' });
+            }
+            imported.push({ name: teamName, players }); i += 25;
+          } else { i++; }
+        }
+        if (!imported.length) { showToast('チームデータが見つかりませんでした'); return; }
+        imported.forEach(function(t, idx) {
+          if (idx < teams.length) {
+            if (t.name) teams[idx].name = t.name;
+            t.players.forEach(function(p, pi) {
+              if (pi < teams[idx].players.length) {
+                if (p.num)  teams[idx].players[pi].num  = p.num;
+                if (p.name) teams[idx].players[pi].name = p.name;
+                if (p.pos)  teams[idx].players[pi].pos  = p.pos;
+              } else if (p.name) { teams[idx].players.push(p); }
+            });
+          } else { teams.push(t); }
+        });
+        saveTeamsToStorage(); renderTeamList(); showToast('✅ ' + imported.length + 'チームを読み込みました');
+      } catch(err) { showToast('読み込みエラー: ' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+    input.value = '';
+  };
+  if (window.XLSX) { doImport(); }
+  else {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = doImport; document.head.appendChild(s);
+  }
+}
+
+// =============================================
+// GAME SETUP
+// =============================================
+function renderSetupForm() {
+  const today = new Date();
+  $id('setup-date').value = today.toISOString().split('T')[0];
+  const asel = $id('setup-away'), hsel = $id('setup-home');
+  asel.innerHTML = ''; hsel.innerHTML = '';
+  const blank = document.createElement('option'); blank.value = ''; blank.textContent = '-- 選択 --';
+  asel.appendChild(blank.cloneNode(true)); hsel.appendChild(blank.cloneNode(true));
+  teams.forEach(function(t, i) {
+    const oa = document.createElement('option'); oa.value = i; oa.textContent = t.name || 'チーム' + (i+1); asel.appendChild(oa);
+    const oh = document.createElement('option'); oh.value = i; oh.textContent = t.name || 'チーム' + (i+1); hsel.appendChild(oh);
+  });
+  if (teams.length >= 2) { asel.value = '0'; hsel.value = '1'; }
+}
+
+function goToOrder() {
+  const awayIdx = +$id('setup-away').value;
+  const homeIdx = +$id('setup-home').value;
+  if (isNaN(awayIdx) || isNaN(homeIdx) || awayIdx === homeIdx) { showToast('先攻・後攻に異なるチームを選択してください'); return; }
+  const innings    = +$id('setup-innings').value;
+  const date       = $id('setup-date').value;
+  const pitchLimit = +$id('setup-pitch-limit').value || 0;
+  window._setupConfig = { awayIdx, homeIdx, innings, date, pitchLimit,
+    awayName: teams[awayIdx].name || 'チームA', homeName: teams[homeIdx].name || 'チームB' };
+  renderOrderScreen('away'); showScreen('screen-order');
+}
+
+// =============================================
+// ORDER SCREEN
+// =============================================
+function renderOrderScreen(side) {
+  orderSetupTab = side;
+  const cfg = window._setupConfig;
+  if (!cfg) return;
+  const teamIdx = side === 'away' ? cfg.awayIdx : cfg.homeIdx;
+  const team    = teams[teamIdx];
+  $id('tab-away').className = 'tab' + (side === 'away' ? ' active' : '');
+  $id('tab-home').className = 'tab' + (side === 'home' ? ' active' : '');
+  $id('order-nav-title').textContent = (side === 'away' ? cfg.awayName : cfg.homeName) + ' オーダー';
+  const players = team ? team.players.filter(function(p){ return p.name; }) : [];
+  if (!window._orders) window._orders = { away: Array(9).fill(null), home: Array(9).fill(null) };
+  const cont = $id('order-content');
+  cont.innerHTML = '';
+  const list = document.createElement('div'); list.className = 'order-list';
+  for (let i = 0; i < 9; i++) {
+    const cur = window._orders[side][i];
+    const item = document.createElement('div'); item.className = 'order-item';
+    const num  = document.createElement('div'); num.className = 'order-num'; num.textContent = i+1;
+    const pl   = document.createElement('div'); pl.className = 'order-player';
+    const sel  = document.createElement('select'); sel.style.cssText = 'font-size:13px;padding:4px 6px;';
+    const blankOpt = document.createElement('option'); blankOpt.value = ''; blankOpt.textContent = '-- 選択 --'; sel.appendChild(blankOpt);
+    players.forEach(function(p, pi) {
+      const opt = document.createElement('option'); opt.value = pi;
+      opt.textContent = '#' + p.num + ' ' + p.name + ' (' + p.pos + ')';
+      if (cur === pi) opt.selected = true; sel.appendChild(opt);
+    });
+    (function(s, slot){ sel.onchange = function(){ setOrderPlayer(s, slot, this.value); }; })(side, i);
+    pl.appendChild(sel); item.appendChild(num); item.appendChild(pl); list.appendChild(item);
+  }
+  // Pitcher select
+  const pitchWrap = document.createElement('div'); pitchWrap.style.cssText = 'padding:8px 0 0;';
+  const pitchLbl  = document.createElement('div'); pitchLbl.className = 'section-label'; pitchLbl.textContent = '先発投手';
+  const pitchSel  = document.createElement('select');
+  pitchSel.id = 'starter-pitcher-' + side; pitchSel.style.cssText = 'width:100%;font-size:13px;padding:6px 8px;';
+  const pBlank = document.createElement('option'); pBlank.value = ''; pBlank.textContent = '-- 投手選択 --'; pitchSel.appendChild(pBlank);
+  players.forEach(function(p, pi) {
+    const opt = document.createElement('option'); opt.value = pi; opt.textContent = '#' + p.num + ' ' + p.name; pitchSel.appendChild(opt);
+  });
+  pitchWrap.appendChild(pitchLbl); pitchWrap.appendChild(pitchSel);
+  list.appendChild(pitchWrap); cont.appendChild(list);
+}
+
+function switchOrderTab(side) { renderOrderScreen(side); }
+function setOrderPlayer(side, slot, val) {
+  if (!window._orders) window._orders = { away: Array(9).fill(null), home: Array(9).fill(null) };
+  window._orders[side][slot] = val === '' ? null : +val;
+}
+function nextOrderTeam() {
+  if (orderSetupTab === 'away') renderOrderScreen('home');
+  else showToast('後攻チームのオーダーを確認して「試合開始」を押してください');
+}
+
+// =============================================
+// GAME STATE
+// =============================================
+function createGameState(config) {
+  const maxInn = config.innings || 7;
+  return {
+    config, inning: 1, topBottom: 'top', outs: 0, strikes: 0, balls: 0,
+    bases: [false, false, false], score: { away: 0, home: 0 }, hits: { away: 0, home: 0 },
+    inningRuns: { away: Array(maxInn).fill(null), home: Array(maxInn).fill(null) },
+    batters: { away: 0, home: 0 }, batterStats: {},
+    pitchers: { away: [], home: [] }, currentPitcher: { away: null, home: null },
+    pitchLimitReached: {},
+    eventCounts: { steal: 0, cs: 0, pb: 0, wp: 0, balk: 0, hitRuns: 0, walkRuns: 0, stealRuns: 0, pbwpRuns: 0, errRuns: 0 },
+    log: [], gameOver: false, savedAt: null, selectedBase: null
+  };
+}
+
+function startGame() {
+  const cfg = window._setupConfig;
+  gameState = createGameState(cfg); history = [];
+  ['away', 'home'].forEach(function(side) {
+    const teamIdx = side === 'away' ? cfg.awayIdx : cfg.homeIdx;
+    const team    = teams[teamIdx];
+    const order   = window._orders[side];
+    gameState.config[side + 'Order'] = order.map(function(pi){ return pi !== null ? team.players[pi] : null; });
+    const pSel = document.getElementById('starter-pitcher-' + side);
+    const pPi  = pSel ? +pSel.value : NaN;
+    if (!isNaN(pPi) && team.players[pPi]) {
+      const p = team.players[pPi];
+      gameState.pitchers[side].push({ name: '#' + p.num + ' ' + p.name, pitches: 0, sessions: [{ inning: 1, tb: 'top', startPitches: 0, type: '先発' }] });
+      gameState.currentPitcher[side] = 0;
+    }
+  });
+  showScreen('screen-score'); renderScore();
+}
+
+// =============================================
+// GAME UTILS
+// =============================================
+function getCurrentSide()   { return gameState.topBottom === 'top' ? 'away' : 'home'; }
+function getDefendingSide() { return gameState.topBottom === 'top' ? 'home' : 'away'; }
+function getBatterIdx()     { return gameState.batters[getCurrentSide()]; }
+function getCurrentOrder()  { return gameState.config[getCurrentSide() + 'Order'] || []; }
+function getBatter()        { const o = getCurrentOrder(); return o.length ? (o[getBatterIdx() % o.length] || null) : null; }
+function getBatterName()    { const b = getBatter(); return b ? '#' + b.num + ' ' + b.name : '打者'; }
+function getBatterKey()     { return getCurrentSide() + '_' + (getBatterIdx() % Math.max(getCurrentOrder().length, 1)); }
+function initBatterStat(key){ if (!gameState.batterStats[key]) gameState.batterStats[key] = { ab: 0, h: 0, bb: 0, hbp: 0, r: 0, rbi: 0 }; }
+
+function getCurrentPitcherInfo(side) {
+  side = side || getDefendingSide();
+  const idx = gameState.currentPitcher[side];
+  if (idx == null || !gameState.pitchers[side][idx]) {
+    gameState.pitchers[side].push({ name: '未登録投手', pitches: 0, sessions: [{ inning: gameState.inning, tb: gameState.topBottom, startPitches: 0, type: '先発' }] });
+    gameState.currentPitcher[side] = gameState.pitchers[side].length - 1;
+  }
+  return gameState.pitchers[side][gameState.currentPitcher[side]];
+}
+function getCurrentPitcherName() { const p = getCurrentPitcherInfo(); return p ? p.name : '---'; }
+function getCurrentPitchCount()  { const p = getCurrentPitcherInfo(); return p ? p.pitches : 0; }
+
+function saveHistory() {
+  history.push(JSON.stringify(gameState));
+  if (history.length > 40) history.shift();
+}
+
+function addLog(msg, tag) {
+  const inn = gameState.inning + (gameState.topBottom === 'top' ? '回表' : '回裏');
+  gameState.log.unshift({ inn, msg, tag: tag || '' });
+  if (gameState.log.length > 100) gameState.log.pop();
+}
+
+// =============================================
+// PITCH COUNT
+// =============================================
+function countDecidingPitch() {
+  const defending = getDefendingSide();
+  const pitcher   = getCurrentPitcherInfo(defending);
+  if (pitcher) { pitcher.pitches++; checkPitchLimit(defending, pitcher); }
+  return pitcher ? pitcher.pitches : 0;
+}
+
+function addPitch(type) {
+  if (gameState.gameOver) return;
+  saveHistory();
+  const defending = getDefendingSide();
+  const pitcher   = getCurrentPitcherInfo(defending);
+  if (pitcher) { pitcher.pitches++; checkPitchLimit(defending, pitcher); }
+  const pitchNum = pitcher ? pitcher.pitches : '?';
+  const name     = getBatterName();
+  if (type === 'S') {
+    gameState.strikes++;
+    if (gameState.strikes >= 3) {
+      addLog(name + ' 第3ストライク（' + pitchNum + '球）', 'out'); renderScore();
+      openSOTypeModal(function(soType) {
+        const lbl = soType ? '三振(' + soType + ')' : '三振';
+        if (gameState.log[0]) gameState.log[0].msg = name + ' ' + lbl + '（' + pitchNum + '球）';
+        renderScore(); openSOModal();
+      }); return;
+    } else { addLog(name + ' S（' + pitchNum + '球） ' + gameState.strikes + '-' + gameState.balls, ''); }
+  } else if (type === 'B') {
+    gameState.balls++;
+    if (gameState.balls >= 4) {
+      addLog(name + ' 四球（' + pitchNum + '球）', ''); renderScore(); doWalk('walk'); resetCount(); renderScore(); return;
+    } else { addLog(name + ' B（' + pitchNum + '球） ' + gameState.strikes + '-' + gameState.balls, ''); }
+  } else if (type === 'F') {
+    if (gameState.strikes < 2) gameState.strikes++;
+    addLog(name + ' F（' + pitchNum + '球） ファウル ' + gameState.strikes + '-' + gameState.balls, 'foul');
+  }
+  renderScore();
+}
+
+// =============================================
+// STRIKEOUT / 振り逃げ
+// =============================================
+function openSOModal() {
+  const has1st = gameState.bases[0], is2out = gameState.outs >= 2;
+  const canUncaught = !has1st || is2out;
+  $id('so-modal-sub').textContent = canUncaught
+    ? '（1塁:' + (has1st ? 'occupied' : '空き') + ' / ' + gameState.outs + 'アウト） 振り逃げ可能'
+    : '1塁にランナーがいるため振り逃げ不可（2アウトなら可）';
+  if (!canUncaught) { confirmSO(false); return; }
+  openModal('modal-so');
+}
+
+function confirmSO(uncaught) {
+  closeModal('modal-so');
+  const side = getCurrentSide(), key = getBatterKey();
+  initBatterStat(key);
+  const name = getBatterName();
+  if (uncaught) {
+    addLog(name + ' 振り逃げ — 1塁へ', 'evt');
+    gameState.batterStats[key].ab++;
+    const r = advanceWalk(gameState.bases); gameState.bases = r.bases;
+    addRuns(side, r.scored, 'walk');
+    if (r.scored > 0) addLog('押し出し ' + r.scored + '点', '');
+    advanceBatter();
+  } else {
+    addLog(name + ' 三振アウト', 'out');
+    gameState.batterStats[key].ab++; gameState.outs++; advanceBatter(); checkThreeOuts();
+  }
+  resetCount(); renderScore();
+}
+
+function openSOTypeModal(callback) { _soTypeCallback = callback; openModal('modal-so-type'); }
+function confirmSOType(soType) { closeModal('modal-so-type'); const cb = _soTypeCallback; _soTypeCallback = null; if (cb) cb(soType); }
+
+// =============================================
+// COUNT CONFIRMATION
+// =============================================
+let _pendingCountAction2 = null;
+function openCountConfirm(action, countDisp, message) {
+  _pendingCountAction2 = action;
+  $id('ccm-title').textContent     = action === 'so' ? '⚠️ ストライクカウント確認' : '⚠️ ボールカウント確認';
+  $id('ccm-count-disp').textContent = countDisp;
+  $id('ccm-msg').textContent        = message;
+  openModal('modal-count-confirm');
+}
+function countConfirmOK() {
+  closeModal('modal-count-confirm');
+  const action = _pendingCountAction2; _pendingCountAction2 = null;
+  if (!action) return;
+  const name = getBatterName(), key = getBatterKey();
+  initBatterStat(key);
+  if (action === 'so') {
+    openSOTypeModal(function(soType) {
+      addLog(name + (soType ? ' 三振(' + soType + ')' : ' 三振'), 'out');
+      resetCount(); renderScore(); openSOModal();
+    });
+  } else if (action === 'walk') {
+    countDecidingPitch(); doWalk('walk');
+    addLog(name + ' 四球（カウント確認済）', '');
+    gameState.batterStats[key].bb++;
+    resetCount(); renderScore();
+  }
+}
+
+// =============================================
+// AT BAT
+// =============================================
+function atBat(type) {
+  if (gameState.gameOver) return;
+  const side = getCurrentSide(), key = getBatterKey();
+  initBatterStat(key);
+  const name = getBatterName();
+  let msg = '';
+  if      (type === 'single')   { openHitTypeModal('single'); return; }
+  else if (type === 'double')   { openHitTypeModal('double'); return; }
+  else if (type === 'triple')   { openHitTypeModal('triple'); return; }
+  else if (type === 'hr')       { openHRModal(); return; }
+  else if (type === 'walk') {
+    if (gameState.balls < 3) { openCountConfirm('walk', 'カウント:' + gameState.balls + 'B ' + gameState.strikes + 'S', gameState.balls + 'ボールで四球？'); return; }
+    countDecidingPitch(); doWalk('walk'); msg = name + ' 四球'; gameState.batterStats[key].bb++;
+  } else if (type === 'hbp') {
+    countDecidingPitch(); doWalk('hbp'); msg = name + ' 死球'; gameState.batterStats[key].hbp++;
+  } else if (type === 'error') {
+    countDecidingPitch(); gameState.batterStats[key].ab++;
+    if (!gameState.bases[0]) gameState.bases[0] = true;
+    else if (!gameState.bases[1]) gameState.bases[1] = true;
+    else if (!gameState.bases[2]) gameState.bases[2] = true;
+    addLog(name + ' エラー出塁（ランナーは塁タップで調整）', 'warn');
+    resetCount(); advanceBatter(); renderScore(); showToast('ランナーの塁をタップして進塁・帰塁を調整してください'); return;
+  } else if (type === 'sac')    { openSacTypeModal(); return; }
+  else if (type === 'forcedout') {
+    countDecidingPitch(); gameState.batterStats[key].ab++; gameState.outs++;
+    addLog(name + ' 強制アウト（塁踏み忘れ等）', 'out');
+    resetCount(); advanceBatter(); checkThreeOuts(); renderScore(); return;
+  } else if (type === 'so') {
+    if (gameState.strikes < 2) { openCountConfirm('so', 'カウント:' + gameState.balls + 'B ' + gameState.strikes + 'S', gameState.strikes + 'ストライクで三振？'); return; }
+    openSOTypeModal(function(soType) {
+      addLog(name + (soType ? ' 三振(' + soType + ')' : ' 三振'), 'out');
+      resetCount(); renderScore(); openSOModal();
+    }); return;
+  } else if (type === 'go')     { openOutPosModal('go'); return; }
+  else if (type === 'fo')       { openOutPosModal('fo'); return; }
+  if (msg) addLog(msg, '');
+  resetCount(); advanceBatter(); checkThreeOuts(); renderScore();
+}
+
+function doWalk(type) {
+  const side = getCurrentSide();
+  const r    = advanceWalk(gameState.bases);
+  gameState.bases = r.bases; addRuns(side, r.scored, 'walk');
+  if (r.scored > 0) addLog('押し出し ' + r.scored + '点', '');
+  advanceBatter();
+}
+
+function advanceBatter() {
+  const side = getCurrentSide(), len = Math.max(getCurrentOrder().length, 1);
+  gameState.batters[side] = (gameState.batters[side] + 1) % len;
+  const defending = getDefendingSide();
+  if (gameState.pitchLimitReached[defending]) {
+    const pitcher = getCurrentPitcherInfo(defending), limit = gameState.config.pitchLimit || 0;
+    if (pitcher && limit) showPitchLimitBanner(defending, pitcher, limit);
+  }
+}
+
+function resetCount() { gameState.strikes = 0; gameState.balls = 0; }
+
+function advanceRunners(bases, n, batterOn) {
+  let nb = bases.slice(), scored = 0;
+  [3, 2, 1].forEach(function(b) {
+    if (nb[b-1]) {
+      if (b + n > 3) { scored++; nb[b-1] = false; }
+      else { nb[b-1+n] = true; nb[b-1] = false; }
+    }
+  });
+  if (batterOn) { if (n > 3) scored++; else nb[n-1] = true; }
+  return { bases: nb, scored };
+}
+
+function advanceWalk(bases) {
+  let nb = bases.slice(), scored = 0;
+  if (nb[0] && nb[1] && nb[2]) { scored++; nb[2] = false; }
+  if (nb[0] && nb[1]) nb[2] = true;
+  if (nb[0]) nb[1] = true;
+  nb[0] = true;
+  return { bases: nb, scored };
+}
+
+function addRuns(side, runs, type) {
+  if (runs <= 0) return;
+  gameState.score[side] += runs;
+  const inn = gameState.inning - 1;
+  if (gameState.inningRuns[side][inn] == null) gameState.inningRuns[side][inn] = 0;
+  gameState.inningRuns[side][inn] += runs;
+  const ec = gameState.eventCounts;
+  if (type === 'hit')    ec.hitRuns  += runs;
+  else if (type === 'walk')  ec.walkRuns += runs;
+  else if (type === 'steal') ec.stealRuns+= runs;
+  else if (type === 'pbwp')  ec.pbwpRuns += runs;
+  else if (type === 'err')   ec.errRuns  += runs;
+}
+
+function checkThreeOuts() { if (gameState.outs >= 3) { doEndInning(); return true; } return false; }
+function manualEndInning() { saveHistory(); doEndInning(); renderScore(); }
+
+function doEndInning() {
+  const inn = gameState.inning - 1, side = getCurrentSide();
+  if (gameState.inningRuns[side][inn] == null) gameState.inningRuns[side][inn] = 0;
+  addLog(gameState.inning + '回' + (gameState.topBottom === 'top' ? '表' : '裏') + ' チェンジ', 'ctrl');
+  if (gameState.topBottom === 'top') { gameState.topBottom = 'bottom'; }
+  else { gameState.inning++; gameState.topBottom = 'top'; }
+  gameState.outs = 0; gameState.bases = [false, false, false]; gameState.selectedBase = null; resetCount();
+  if (gameState.inning > gameState.config.innings) {
+    gameState.gameOver = true; addLog('試合終了', 'ctrl'); setTimeout(showSummary, 500);
+  }
+}
+
+// =============================================
+// HIT TYPE
+// =============================================
+function openHitTypeModal(hitType) {
+  if (gameState.gameOver) return;
+  _pendingHitType = hitType; _pendingHitSubtype = 'normal';
+  const labels = { single: '単打', double: '二塁打', triple: '三塁打' };
+  $id('hit-dir-title').textContent = (labels[hitType] || '単打') + ' — 方向';
+  $id('hit-dir-sub').textContent   = '打者: ' + getBatterName();
+  $id('hit-dir-bunt-row').style.display = hitType === 'single' ? 'flex' : 'none';
+  ['normal', 'bunt', 'safety'].forEach(function(t) {
+    const b = $id('hd-btn-' + t); if (b) b.className = 'btn hit sm' + (t === 'normal' ? ' primary' : '');
+  });
+  openModal('modal-hit-dir');
+}
+
+function setHitSubtype(sub) {
+  _pendingHitSubtype = sub;
+  ['normal', 'bunt', 'safety'].forEach(function(t) {
+    const b = $id('hd-btn-' + t); if (b) b.className = 'btn hit sm' + (t === sub ? ' primary' : '');
+  });
+}
+
+function confirmHitDir(pos) {
+  closeModal('modal-hit-dir'); saveHistory(); countDecidingPitch();
+  const side = getCurrentSide(), key = getBatterKey();
+  initBatterStat(key); const name = getBatterName();
+  const advances = { single: 1, double: 2, triple: 3 };
+  const n   = advances[_pendingHitType] || 1;
+  const r   = advanceRunners(gameState.bases, n, true);
+  gameState.bases = r.bases; addRuns(side, r.scored, 'hit');
+  gameState.batterStats[key].ab++; gameState.batterStats[key].h++; gameState.hits[side]++;
+  const baseLabel    = { single: '単打', double: '二塁打', triple: '三塁打' }[_pendingHitType] || '単打';
+  const subtypeLabel = _pendingHitSubtype === 'bunt' ? '(バント)' : _pendingHitSubtype === 'safety' ? '(セーフティー)' : '';
+  addLog(name + ' ' + baseLabel + subtypeLabel + '[' + pos + ']' + (r.scored > 0 ? ' ' + r.scored + '点' : ''), '');
+  resetCount(); advanceBatter(); renderScore();
+}
+
+// =============================================
+// HR TYPE
+// =============================================
+function openHRModal() { if (gameState.gameOver) return; openModal('modal-hr-type'); }
+function confirmHRType(direction) {
+  closeModal('modal-hr-type'); saveHistory(); countDecidingPitch();
+  const side = getCurrentSide(), key = getBatterKey();
+  initBatterStat(key); const name = getBatterName();
+  let sc = 1; gameState.bases.forEach(function(b){ if (b) sc++; });
+  gameState.bases = [false, false, false]; addRuns(side, sc, 'hit');
+  gameState.batterStats[key].ab++; gameState.batterStats[key].h++; gameState.hits[side]++;
+  addLog(name + ' 本塁打[' + direction + '] ' + sc + '点', '');
+  resetCount(); advanceBatter(); renderScore();
+}
+
+// =============================================
+// OUT POSITION
+// =============================================
+function openOutPosModal(outType) {
+  if (gameState.gameOver) return;
+  _pendingOutType = outType;
+  const label = outType === 'go' ? 'ゴロ' : 'フライ';
+  $id('out-pos-title').textContent = label + ' — 守備位置';
+  openModal('modal-out-pos');
+}
+
+function confirmOutPos(pos) {
+  closeModal('modal-out-pos');
+  if (_pendingSacSubtype != null) { _doSacWithPos(pos); _pendingSacSubtype = null; return; }
+  saveHistory(); countDecidingPitch();
+  const key = getBatterKey(); initBatterStat(key); const name = getBatterName();
+  const label = _pendingOutType === 'go' ? 'ゴロ' : 'フライ';
+  gameState.outs++; gameState.batterStats[key].ab++;
+  addLog(name + ' ' + label + 'アウト [' + pos + ']', 'out');
+  resetCount(); advanceBatter(); checkThreeOuts(); renderScore();
+}
+
+// =============================================
+// SAC TYPE
+// =============================================
+function openSacTypeModal() { if (gameState.gameOver) return; openModal('modal-sac-type'); }
+function confirmSacType(subtype) {
+  closeModal('modal-sac-type'); _pendingSacSubtype = subtype;
+  const label = { sac: '犠打', squeeze: 'スクイズ', sacfly: '犠牲フライ' }[subtype] || '犠打';
+  $id('out-pos-title').textContent = label + ' — 守備位置';
+  openModal('modal-out-pos');
+}
+
+function _doSacWithPos(pos) {
+  saveHistory(); countDecidingPitch();
+  const side = getCurrentSide(), key = getBatterKey();
+  initBatterStat(key); const name = getBatterName(), subtype = _pendingSacSubtype;
+  if (subtype === 'sacfly') {
+    gameState.outs++;
+    if (gameState.bases[2]) { gameState.bases[2] = false; addRuns(side, 1, 'hit'); addLog(name + ' 犠牲フライ[' + pos + '] 1点', ''); }
+    else { addLog(name + ' 犠牲フライ[' + pos + ']（得点なし）', ''); }
+    resetCount(); advanceBatter(); checkThreeOuts(); renderScore(); return;
+  }
+  gameState.outs++;
+  const label = subtype === 'squeeze' ? 'スクイズ' : '犠打';
+  let msg;
+  if (gameState.bases.some(function(b){ return b; })) {
+    const r = advanceRunners(gameState.bases, 1, false);
+    gameState.bases = r.bases; addRuns(side, r.scored, 'hit');
+    msg = name + ' ' + label + '[' + pos + ']' + (r.scored > 0 ? ' ' + r.scored + '点' : '');
+  } else { msg = name + ' ' + label + '[' + pos + ']'; }
+  addLog(msg, ''); resetCount(); advanceBatter(); checkThreeOuts(); renderScore();
+}
+
+// =============================================
+// BASE / RUNNER OPERATIONS
+// =============================================
+function tapBase(b) {
+  if (gameState.bases[b-1]) {
+    movingRunnerBase = b;
+    $id('runner-move-title').textContent = ['', '1塁', '2塁', '3塁'][b] + 'のランナーを操作';
+    openModal('modal-runner-move');
+  } else {
+    pendingBaseClick = b;
+    $id('addrunner-title').textContent = b + '塁にランナーを置く';
+    openModal('modal-addrunner');
+  }
+}
+
+function confirmAddRunner() {
+  if (pendingBaseClick) {
+    saveHistory(); gameState.bases[pendingBaseClick-1] = true;
+    addLog(pendingBaseClick + '塁 ランナー追加', ''); pendingBaseClick = null; renderScore();
+  }
+  closeModal('modal-addrunner');
+}
+
+function moveRunner(action) {
+  if (movingRunnerBase == null) return;
+  saveHistory();
+  const side = getCurrentSide(), from = movingRunnerBase;
+  const names = ['', '1塁', '2塁', '3塁'];
+  if (action === 1) {
+    if (from === 3) { gameState.bases[2] = false; addRuns(side, 1, 'hit'); addLog('3塁→ ホームイン 1点（手動）', ''); }
+    else {
+      let scored = 0;
+      if (gameState.bases[2] && from <= 2) { gameState.bases[2] = false; scored++; }
+      if (gameState.bases[1] && from <= 1) { gameState.bases[2] = true; gameState.bases[1] = false; }
+      gameState.bases[from-1] = false; gameState.bases[from] = true;
+      if (scored > 0) { addRuns(side, scored, 'hit'); addLog(names[from] + '→' + names[from+1] + ' 進塁（押し出し含む）' + scored + '点（手動）', ''); }
+      else { addLog(names[from] + '→' + names[from+1] + ' 進塁（手動）', ''); }
+    }
+  } else if (action === -1) {
+    if (from > 1) {
+      if (gameState.bases[from-2]) { showToast(names[from-1] + 'にすでにランナーがいます'); closeModal('modal-runner-move'); return; }
+      gameState.bases[from-1] = false; gameState.bases[from-2] = true; addLog(names[from] + '→' + names[from-1] + ' 帰塁（手動）', '');
+    } else { showToast('1塁より戻れません'); closeModal('modal-runner-move'); return; }
+  } else if (action === 'score') {
+    gameState.bases[from-1] = false; addRuns(side, 1, 'hit'); addLog(names[from] + '→ ホームイン 1点（手動）', '');
+  } else if (action === 'remove') {
+    gameState.bases[from-1] = false; addLog(names[from] + ' ランナー消去（手動）', '');
+  }
+  movingRunnerBase = null; closeModal('modal-runner-move'); renderScore();
+}
+
+// =============================================
+// EVENTS (盗塁・PB・WP等)
+// =============================================
+function openEventModal(type) {
+  if (gameState.gameOver) return;
+  eventType = type; eventSelectedRunner = null;
+  const runners = [];
+  if (gameState.bases[0]) runners.push(1);
+  if (gameState.bases[1]) runners.push(2);
+  if (gameState.bases[2]) runners.push(3);
+  const title  = $id('event-modal-title');
+  const roDiv  = $id('event-runner-opts');
+  const actDiv = $id('event-action-btns');
+  const labels = { steal: '盗塁', cs: '盗塁刺', pb: 'PB（捕逸）', wp: 'WP（暴投）', balk: 'ボーク' };
+  if (type === 'balk') {
+    title.textContent = 'ボーク';
+    roDiv.innerHTML = '';
+    const sp = document.createElement('span'); sp.style.cssText = 'font-size:13px;color:var(--text2);'; sp.textContent = '全ランナーが1つ進塁します';
+    roDiv.appendChild(sp);
+    actDiv.innerHTML = '';
+    const btn = document.createElement('button'); btn.className = 'btn full evt'; btn.textContent = '確定'; btn.onclick = applyBalk; actDiv.appendChild(btn);
+  } else {
+    title.textContent = (labels[type] || type) + ': ランナー選択';
+    roDiv.innerHTML = ''; actDiv.innerHTML = '';
+    if (!runners.length) {
+      const sp = document.createElement('span'); sp.style.cssText = 'font-size:13px;color:var(--text3);'; sp.textContent = 'ランナーがいません';
+      roDiv.appendChild(sp);
+    } else {
+      runners.forEach(function(r) {
+        const btn = document.createElement('button'); btn.className = 'runner-opt'; btn.textContent = r + '塁';
+        btn.onclick = function(){ selectEventRunner(r); }; roDiv.appendChild(btn);
+      });
+      if ((type === 'pb' || type === 'wp') && runners.length > 1) {
+        const ab = document.createElement('button'); ab.className = 'btn full evt'; ab.style.marginBottom = '6px'; ab.textContent = '全員1つ進塁'; ab.onclick = applyAllAdvance; actDiv.appendChild(ab);
+      }
+    }
+  }
+  openModal('modal-event');
+}
+
+function selectEventRunner(base) {
+  eventSelectedRunner = base;
+  document.querySelectorAll('.runner-opt').forEach(function(b){ b.className = 'runner-opt' + (b.textContent === base + '塁' ? ' sel' : ''); });
+  const actDiv = $id('event-action-btns');
+  actDiv.innerHTML = '';
+  const side = getCurrentSide();
+  if (eventType === 'steal') {
+    const dest = base + 1;
+    const btn = document.createElement('button'); btn.className = 'btn full evt';
+    if (dest <= 3) { btn.textContent = '→ ' + dest + '塁へ盗塁'; btn.onclick = function(){ applySteal(base, dest); }; }
+    else           { btn.textContent = '→ ホームイン（盗塁得点）'; btn.onclick = function(){ applySteal(base, 4); }; }
+    actDiv.appendChild(btn);
+  } else if (eventType === 'cs') {
+    const btn = document.createElement('button'); btn.className = 'btn full out'; btn.textContent = '盗塁刺 → アウト'; btn.onclick = function(){ applyCS(base); }; actDiv.appendChild(btn);
+  } else if (eventType === 'pb' || eventType === 'wp') {
+    const dest  = base + 1;
+    const label = eventType === 'pb' ? 'PB' : 'WP';
+    if (gameState.bases.filter(function(b){ return b; }).length > 1) {
+      const ab = document.createElement('button'); ab.className = 'btn full evt'; ab.style.marginBottom = '6px'; ab.textContent = '全員1つ進塁'; ab.onclick = applyAllAdvance; actDiv.appendChild(ab);
+    }
+    const btn = document.createElement('button'); btn.className = 'btn full evt';
+    if (dest > 3) { btn.textContent = label + ': ホームイン（得点）'; btn.onclick = function(){ applyPBWP(base, 4); }; }
+    else          { btn.textContent = label + ': → ' + dest + '塁へ進塁'; btn.onclick = function(){ applyPBWP(base, dest); }; }
+    actDiv.appendChild(btn);
+  }
+}
+
+function applySteal(from, to) {
+  saveHistory(); const side = getCurrentSide();
+  gameState.bases[from-1] = false; gameState.eventCounts.steal++;
+  if (to > 3) { addRuns(side, 1, 'steal'); addLog(from + '塁→ 盗塁ホームイン 1点', 'evt'); }
+  else        { gameState.bases[to-1] = true; addLog(from + '塁→' + to + '塁 盗塁', 'evt'); }
+  closeModal('modal-event'); renderScore();
+}
+function applyCS(base) {
+  saveHistory(); gameState.bases[base-1] = false; gameState.outs++; gameState.eventCounts.cs++;
+  addLog(base + '塁 盗塁刺 アウト', 'out'); checkThreeOuts(); closeModal('modal-event'); renderScore();
+}
+function applyPBWP(from, to) {
+  saveHistory(); const side = getCurrentSide(), label = eventType === 'pb' ? 'PB' : 'WP';
+  if (eventType === 'pb') gameState.eventCounts.pb++; else gameState.eventCounts.wp++;
+  gameState.bases[from-1] = false;
+  if (to > 3) { addRuns(side, 1, 'pbwp'); addLog(from + '塁→ ' + label + 'ホームイン 1点', 'evt'); }
+  else        { gameState.bases[to-1] = true; addLog(from + '塁→' + to + '塁 ' + label, 'evt'); }
+  closeModal('modal-event'); renderScore();
+}
+function applyAllAdvance() {
+  saveHistory(); const side = getCurrentSide();
+  const label = { pb: 'PB', wp: 'WP', steal: '盗塁', balk: 'ボーク' }[eventType] || '進塁';
+  let scored = 0; const nb = gameState.bases.slice();
+  [3,2,1].forEach(function(b){ if(nb[b-1]){ if(b+1>3){scored++;nb[b-1]=false;}else{nb[b]=true;nb[b-1]=false;} } });
+  gameState.bases = nb; addRuns(side, scored, 'pbwp');
+  addLog('全ランナー1進塁 ' + label + (scored > 0 ? ' ' + scored + '点' : ''), 'evt');
+  closeModal('modal-event'); renderScore();
+}
+function applyBalk() {
+  saveHistory(); const side = getCurrentSide(); let scored = 0; const nb = gameState.bases.slice();
+  [3,2,1].forEach(function(b){ if(nb[b-1]){ if(b+1>3){scored++;nb[b-1]=false;}else{nb[b]=true;nb[b-1]=false;} } });
+  gameState.bases = nb; gameState.eventCounts.balk++; addRuns(side, scored, 'err');
+  addLog('ボーク 全ランナー1進塁' + (scored > 0 ? ' ' + scored + '点' : ''), 'evt');
+  closeModal('modal-event'); renderScore();
+}
+
+// =============================================
+// TIMEOUT
+// =============================================
+function openTimeoutModal() {
+  const atk = getCurrentSide(), def = getDefendingSide();
+  $id('to-attack-name').textContent  = gameState.config[atk + 'Name'] || '';
+  $id('to-defense-name').textContent = gameState.config[def + 'Name'] || '';
+  openModal('modal-timeout');
+}
+function recordTimeout(role, requester) {
+  closeModal('modal-timeout'); saveHistory();
+  const atk = getCurrentSide(), def = getDefendingSide();
+  const sideLabel  = role === 'attack' ? gameState.config[atk + 'Name'] : gameState.config[def + 'Name'];
+  const reqLabel   = { bench: 'ベンチ要求', offense: '攻撃要求', defense: '守備要求' }[requester] || requester;
+  addLog('⏱ タイム：' + sideLabel + ' ' + reqLabel, 'ctrl'); renderScore(); showToast('タイム記録: ' + sideLabel + ' ' + reqLabel);
+}
+
+// =============================================
+// PLAYER CHANGE / POS CHANGE
+// =============================================
+function switchPchTab(tab) {
+  _pchTab = tab;
+  ['pitcher', 'player', 'pos'].forEach(function(t) {
+    $id('pch-tab-' + t).className  = 'tab' + (t === tab ? ' active' : '');
+    $id('pch-panel-' + t).style.display = t === tab ? 'block' : 'none';
+  });
+}
+
+function openSubModal() {
+  _pchSide = getCurrentSide();
+  _buildSubPanels(_pchSide); switchPchTab('player');
+  $id('pch-modal-title').textContent   = '選手交代・守備変更';
+  $id('pitcher-modal-sub').textContent = '対象チーム: ' + (gameState.config[_pchSide + 'Name'] || '');
+  openModal('modal-pitcher');
+}
+
+function _getTeamPlayers(side) {
+  const teamIdx = gameState.config[side + 'Idx'];
+  const team    = teams[teamIdx];
+  return team ? team.players.filter(function(p){ return p.name; }) : [];
+}
+
+function _buildSubPanels(side) {
+  const order   = gameState.config[side + 'Order'] || [];
+  const players = _getTeamPlayers(side);
+  // 選手交代パネル
+  const soSel = $id('sub-out-order'); soSel.innerHTML = '';
+  const soBlank = document.createElement('option'); soBlank.value = ''; soBlank.textContent = '-- 打順を選択 --'; soSel.appendChild(soBlank);
+  order.forEach(function(p, i) {
+    if (p) { const opt = document.createElement('option'); opt.value = i; opt.textContent = (i+1) + '番 #' + p.num + ' ' + p.name + ' (' + p.pos + ')'; soSel.appendChild(opt); }
+  });
+  $id('sub-out-name').textContent = '';
+  const siSel = $id('sub-in-player'); siSel.innerHTML = '';
+  const siBlank = document.createElement('option'); siBlank.value = ''; siBlank.textContent = '-- 選手を選択 --'; siSel.appendChild(siBlank);
+  players.forEach(function(p, pi) { const opt = document.createElement('option'); opt.value = pi; opt.textContent = '#' + p.num + ' ' + p.name; siSel.appendChild(opt); });
+  const sipSel = $id('sub-in-pos'); sipSel.innerHTML = '';
+  const sipBlank = document.createElement('option'); sipBlank.value = ''; sipBlank.textContent = '-- 守備位置 --'; sipSel.appendChild(sipBlank);
+  POSITIONS.forEach(function(pos){ const opt = document.createElement('option'); opt.value = pos; opt.textContent = pos; sipSel.appendChild(opt); });
+  // 守備変更パネル
+  const ppSel = $id('pos-change-player'); ppSel.innerHTML = '';
+  const ppBlank = document.createElement('option'); ppBlank.value = ''; ppBlank.textContent = '-- 選手を選択 --'; ppSel.appendChild(ppBlank);
+  order.forEach(function(p, i) {
+    if (p) { const opt = document.createElement('option'); opt.value = i; opt.textContent = (i+1) + '番 #' + p.num + ' ' + p.name + ' → 現在(' + p.pos + ')'; ppSel.appendChild(opt); }
+  });
+  const pgrid = $id('pos-btn-grid'); pgrid.innerHTML = '';
+  POSITIONS.forEach(function(pos) {
+    const btn = document.createElement('button'); btn.className = 'btn xs'; btn.id = 'posbtn-' + pos; btn.textContent = pos;
+    btn.onclick = function(){ selectNewPos(pos); }; pgrid.appendChild(btn);
+  });
+}
+
+function updateSubOutPlayer() {
+  const idx = +$id('sub-out-order').value;
+  const order = gameState.config[_pchSide + 'Order'] || [];
+  const p = order[idx];
+  $id('sub-out-name').textContent = p ? '退く選手: #' + p.num + ' ' + p.name + ' (' + p.pos + ')' : '';
+}
+
+function doPlayerSub() {
+  const outIdx = $id('sub-out-order').value;
+  const inPi   = +$id('sub-in-player').value;
+  const inPos  = $id('sub-in-pos').value;
+  if (outIdx === '' || isNaN(inPi) || !inPos) { showToast('選手・守備位置をすべて選択してください'); return; }
+  const order     = gameState.config[_pchSide + 'Order'];
+  const outPlayer = order[+outIdx];
+  const players   = _getTeamPlayers(_pchSide);
+  const inPlayer  = Object.assign({}, players[inPi], { pos: inPos });
+  saveHistory(); order[+outIdx] = inPlayer;
+  addLog('🔄 選手交代: #' + outPlayer.num + outPlayer.name + '→#' + inPlayer.num + inPlayer.name + '(' + inPos + ')', 'ctrl');
+  closeModal('modal-pitcher'); renderScore(); showToast('選手交代を記録しました');
+}
+
+function selectNewPos(pos) {
+  _selectedNewPos = pos;
+  document.querySelectorAll('[id^="posbtn-"]').forEach(function(b){ b.classList.remove('primary'); });
+  const el = $id('posbtn-' + pos); if (el) el.classList.add('primary');
+}
+
+function doPosChange() {
+  const idx = $id('pos-change-player').value;
+  if (idx === '' || !_selectedNewPos) { showToast('選手と新しい守備位置を選択してください'); return; }
+  const order = gameState.config[_pchSide + 'Order'];
+  const p = order[+idx]; if (!p) return;
+  saveHistory();
+  const oldPos = p.pos; p.pos = _selectedNewPos;
+  addLog('🔀 守備変更: #' + p.num + p.name + ' ' + oldPos + '→' + _selectedNewPos, 'ctrl');
+  _selectedNewPos = null; closeModal('modal-pitcher'); renderScore(); showToast('守備変更を記録しました');
+}
+
+// =============================================
+// PITCHER MODAL
+// =============================================
+function openPitcherModal() {
+  const defending = getDefendingSide(); _pchSide = defending;
+  const teamIdx   = gameState.config[defending + 'Idx'];
+  const team      = teams[teamIdx];
+  if (!team) { showToast('チームが未設定です'); return; }
+  const players  = team.players.filter(function(p){ return p.name; });
+  const cur      = getCurrentPitcherInfo(defending);
+  const limit    = gameState.config.pitchLimit || 0;
+  $id('pch-modal-title').textContent   = '投手交代';
+  $id('pitcher-modal-sub').textContent = '守備側: ' + (gameState.config[defending + 'Name'] || '') + ' ／ 現在: ' + (cur ? cur.name : '未設定') + ' (' + (cur ? cur.pitches : 0) + '球)';
+  $id('pitcher-start-count').value = '';
+  const listEl = $id('pitcher-list'); listEl.innerHTML = '';
+  players.forEach(function(p, pi) {
+    const existing = gameState.pitchers[defending].find(function(pp){ return pp.name === '#' + p.num + ' ' + p.name; });
+    const pitches  = existing ? existing.pitches : 0;
+    const overLimit = limit > 0 && pitches >= limit;
+    const isCur    = existing && gameState.currentPitcher[defending] === gameState.pitchers[defending].indexOf(existing);
+    const div = document.createElement('div'); div.className = 'pitcher-opt' + (isCur ? ' sel' : '');
+    if (isCur) { div.style.borderColor = 'var(--blue)'; div.style.background = 'var(--surface2)'; }
+    const nm  = document.createElement('span'); nm.className = 'pname'; nm.textContent = '#' + p.num + ' ' + p.name + ' (' + p.pos + ')' + (isCur ? ' ★' : '');
+    const pc  = document.createElement('span'); pc.className = 'ppitch';
+    if (pitches > 0) { pc.textContent = '通算' + pitches + '球' + (limit ? ' / 制限' + limit + '球' : ''); if (overLimit) { pc.style.color = '#c0392b'; pc.style.fontWeight = '700'; } }
+    div.appendChild(nm); div.appendChild(pc);
+    div.onclick = (function(idx){ return function(){ setPitcher(defending, idx); }; })(pi);
+    listEl.appendChild(div);
+  });
+  _buildSubPanels(defending); switchPchTab('pitcher'); openModal('modal-pitcher');
+}
+
+function setPitcher(side, playerIdx) {
+  const teamIdx = gameState.config[side + 'Idx'];
+  const team    = teams[teamIdx]; if (!team) return;
+  const players = team.players.filter(function(p){ return p.name; });
+  const p       = players[playerIdx]; if (!p) return;
+  saveHistory();
+  const startCount = +$id('pitcher-start-count').value || 0;
+  const name       = '#' + p.num + ' ' + p.name;
+  const existing   = gameState.pitchers[side].findIndex(function(pp){ return pp.name === name; });
+  if (existing >= 0) {
+    const pitcher = gameState.pitchers[side][existing];
+    gameState.currentPitcher[side] = existing;
+    if (startCount > 0) pitcher.pitches = startCount;
+    if (!pitcher.sessions) pitcher.sessions = [];
+    pitcher.sessions.push({ inning: gameState.inning, tb: gameState.topBottom, startPitches: pitcher.pitches, type: '復帰' });
+    addLog('投手復帰: ' + name + ' (通算' + pitcher.pitches + '球)', 'ctrl');
+    checkPitchLimit(side, pitcher);
+  } else {
+    const pitcher = { name, pitches: startCount, sessions: [{ inning: gameState.inning, tb: gameState.topBottom, startPitches: startCount, type: '初登板' }] };
+    gameState.pitchers[side].push(pitcher);
+    gameState.currentPitcher[side] = gameState.pitchers[side].length - 1;
+    addLog('投手交代: ' + name + (startCount > 0 ? ' (' + startCount + '球から)' : ''), 'ctrl');
+  }
+  resetCount(); closeModal('modal-pitcher'); renderScore();
+}
+
+// =============================================
+// PITCH LIMIT
+// =============================================
+function checkPitchLimit(side, pitcher) {
+  const limit = gameState.config.pitchLimit || 0; if (!limit) return;
+  if (pitcher.pitches >= limit) {
+    if (!gameState.pitchLimitReached) gameState.pitchLimitReached = {};
+    gameState.pitchLimitReached[side] = true;
+    showPitchLimitBanner(side, pitcher, limit);
+  }
+}
+
+function showPitchLimitBanner(side, pitcher, limit) {
+  const banner = $id('pitch-limit-banner'); if (!banner) return;
+  banner.style.display = 'flex'; banner.innerHTML = '';
+  const icon = document.createElement('span'); icon.style.fontSize = '15px'; icon.textContent = '⚠️';
+  const txt = document.createElement('span'); txt.style.cssText = 'flex:1;font-size:12px;font-weight:600;';
+  txt.textContent = pitcher.name + ' が' + limit + '球に達しました。この打者との対戦が終了したら交代してください';
+  const closeBtn = document.createElement('button'); closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'border:none;background:none;color:inherit;font-size:16px;cursor:pointer;padding:0 4px;';
+  closeBtn.onclick = function(){ banner.style.display = 'none'; };
+  banner.appendChild(icon); banner.appendChild(txt); banner.appendChild(closeBtn);
+}
+
+// =============================================
+// GAME END
+// =============================================
+function confirmEndGame() { openModal('modal-endgame'); }
+function endGame(reason) {
+  closeModal('modal-endgame'); saveHistory();
+  gameState.gameOver = true; gameState.endReason = reason;
+  const inn = gameState.inning - 1, side = getCurrentSide();
+  if (gameState.inningRuns[side][inn] == null) gameState.inningRuns[side][inn] = 0;
+  addLog('試合終了（' + reason + '）', 'ctrl'); renderScore(); setTimeout(showSummary, 300);
+}
+
+// =============================================
+// UNDO
+// =============================================
+function undoLast() {
+  if (!history.length) { showToast('これ以上戻せません'); return; }
+  gameState = JSON.parse(history.pop());
+  addLog('操作を取り消しました', 'ctrl'); renderScore();
+}
+
+// =============================================
+// RENDER
+// =============================================
+function renderScore() {
+  if (!gameState) return;
+  setTxt('sh-away-name',  gameState.config.awayName);
+  setTxt('sh-home-name',  gameState.config.homeName);
+  setTxt('sh-away-score', gameState.score.away);
+  setTxt('sh-home-score', gameState.score.home);
+  setTxt('bi-inn',        gameState.inning);
+  setTxt('bi-tb',         gameState.topBottom === 'top' ? '表' : '裏');
+  setTxt('bi-out',        gameState.outs);
+  setTxt('bi-bat-num',    (getBatterIdx() % Math.max(getCurrentOrder().length, 9)) + 1);
+  setTxt('bi-balls',      gameState.balls);
+  setTxt('bi-strikes',    gameState.strikes);
+  [0,1].forEach(function(i){ setCls('ph-s'+i, 'sbo-d'+(gameState.strikes>i?' s':'')); });
+  [0,1,2].forEach(function(i){ setCls('ph-b'+i, 'sbo-d'+(gameState.balls>i?' b':'')); });
+  [0,1].forEach(function(i){ setCls('ph-o'+i, 'sbo-d'+(gameState.outs>i?' o':'')); });
+  setTxt('ph-pitch-num',  getCurrentPitchCount());
+  setTxt('ph-pitcher-name', getCurrentPitcherName());
+  setCls('od1', 'out-dot'+(gameState.outs>=1?' on':''));
+  setCls('od2', 'out-dot'+(gameState.outs>=2?' on':''));
+  ['first','second','third'].forEach(function(n,i) {
+    let cls = 'base'; if (gameState.bases[i]) cls += ' occ'; if (gameState.selectedBase === i+1) cls += ' sel'; setCls('b-'+n, cls);
+  });
+  setTxt('disp-batter-name',   getBatterName());
+  const bk = getBatterKey(); initBatterStat(bk); const bs = gameState.batterStats[bk];
+  setTxt('disp-batter-detail', '打数' + bs.ab + ' / 安打' + bs.h + ' / 四球' + bs.bb);
+  renderScoreboard(); renderLog(); triggerAutoSave();
+}
+
+function renderScoreboard() {
+  const max = gameState.config.innings, tbl = $id('scoreboard-table');
+  if (!tbl.dataset.built || +tbl.dataset.innings !== max) {
+    let h = '<thead><tr><th></th>';
+    for (let i=1;i<=max;i++) h += '<th>' + i + '<' + '/th>';
+    h += '<th>計<' + '/th><th>H<' + '/th><' + '/tr><' + '/thead><tbody>';
+    ['away','home'].forEach(function(side) {
+      h += '<tr><td class="tn" id="sb-tn-' + side + '"><' + '/td>';
+      for (let i=0;i<max;i++) h += '<td id="sb-' + side + '-' + i + '"><' + '/td>';
+      h += '<td class="tot" id="sb-' + side + '-tot"><' + '/td><td class="tot" id="sb-' + side + '-h"><' + '/td><' + '/tr>';
+    });
+    h += '<' + '/tbody>';
+    tbl.innerHTML = h; tbl.dataset.built = '1'; tbl.dataset.innings = max;
+    Object.keys(_dom).filter(function(k){ return k.startsWith('sb-'); }).forEach(function(k){ delete _dom[k]; });
+  }
+  ['away','home'].forEach(function(side) {
+    const isCur = (side==='away'&&gameState.topBottom==='top')||(side==='home'&&gameState.topBottom==='bottom');
+    setTxt('sb-tn-' + side, gameState.config[side+'Name']);
+    for (let i=0;i<max;i++) {
+      const val = gameState.inningRuns[side][i], isCurInn = i===gameState.inning-1&&isCur;
+      const el  = $id('sb-'+side+'-'+i);
+      if (el) { const nv=val!=null?String(val):''; if(el.textContent!==nv) el.textContent=nv; if(el.className!==(isCurInn?'cur':'')) el.className=isCurInn?'cur':''; }
+    }
+    setTxt('sb-' + side + '-tot', gameState.score[side]);
+    setTxt('sb-' + side + '-h',   gameState.hits[side]);
+  });
+}
+
+function renderLog(all) {
+  const el    = $id('log-list'); if (!el) return;
+  const count = all ? gameState.log.length : 12;
+  el.innerHTML = '';
+  gameState.log.slice(0, count).forEach(function(l) {
+    const div = document.createElement('div'); div.className = 'log-item' + (l.tag ? ' '+l.tag : '');
+    const tag = document.createElement('span'); tag.className = 'log-tag'; tag.textContent = l.inn;
+    const msg = document.createElement('span'); msg.textContent = l.msg;
+    div.appendChild(tag); div.appendChild(msg); el.appendChild(div);
+  });
+}
+
+// =============================================
+// SUMMARY
+// =============================================
+function showSummary() {
+  const g = gameState, ec = g.eventCounts, limit = g.config.pitchLimit || 0;
+  const cont = $id('summary-content'); if (!cont) return;
+  cont.innerHTML = '';
+  if (g.endReason) {
+    const d = document.createElement('div'); d.style.cssText = 'text-align:center;font-size:12px;color:var(--text3);margin-bottom:8px;'; d.textContent = '終了理由：' + g.endReason; cont.appendChild(d);
+  }
+  // Score grid
+  const grid = document.createElement('div'); grid.className = 'sum-grid';
+  [{ v: g.score.away, l: g.config.awayName }, { v: g.score.home, l: g.config.homeName },
+   { v: g.hits.away + g.hits.home, l: '総安打' }, { v: ec.steal, l: '盗塁数' }].forEach(function(item) {
+    const card = document.createElement('div'); card.className = 'sum-card';
+    const sv = document.createElement('div'); sv.className = 'sv'; sv.textContent = item.v;
+    const sl = document.createElement('div'); sl.className = 'sl'; sl.textContent = item.l;
+    card.appendChild(sv); card.appendChild(sl); grid.appendChild(card);
+  });
+  cont.appendChild(grid);
+  // Runs breakdown
+  const sumRows = [['安打による得点', ec.hitRuns], ['四死球・押出し', ec.walkRuns], ['盗塁による得点', ec.stealRuns], ['PB/WPによる得点', ec.pbwpRuns], ['エラーによる得点', ec.errRuns]];
+  const t1 = document.createElement('div'); t1.className = 'sum-title'; t1.textContent = '得点内訳（全体）'; cont.appendChild(t1);
+  sumRows.forEach(function(row) {
+    const d = document.createElement('div'); d.className = 'inn-row';
+    const sp = document.createElement('span'); sp.textContent = row[0];
+    const b  = document.createElement('b');   b.textContent  = row[1] + '点';
+    d.appendChild(sp); d.appendChild(b); cont.appendChild(d);
+  });
+  // Pitchers
+  ['away','home'].forEach(function(side) {
+    if (!g.pitchers[side].length) return;
+    const t = document.createElement('div'); t.className = 'sum-title';
+    t.textContent = g.config[side+'Name'] + ' 投手成績' + (limit ? ' （制限' + limit + '球）' : ''); cont.appendChild(t);
+    g.pitchers[side].forEach(function(p) {
+      const d = document.createElement('div'); d.className = 'inn-row';
+      const overLimit = limit > 0 && p.pitches >= limit;
+      const sessions  = (p.sessions || []).map(function(s){ return s.inning + '回' + (s.tb === 'top' ? '表' : '裏') + s.type; }).join('→');
+      const sp = document.createElement('span'); sp.textContent = p.name + '（' + sessions + '）';
+      const b  = document.createElement('b'); b.textContent = p.pitches + '球' + (overLimit ? '⚠️' : '');
+      if (overLimit) b.style.color = '#c0392b';
+      d.appendChild(sp); d.appendChild(b); cont.appendChild(d);
+    });
+  });
+  // Innings
+  const t2 = document.createElement('div'); t2.className = 'sum-title'; t2.textContent = 'イニング別'; cont.appendChild(t2);
+  for (let i = 0; i < g.config.innings; i++) {
+    const a = g.inningRuns.away[i], h = g.inningRuns.home[i];
+    if (a == null && h == null) continue;
+    const d = document.createElement('div'); d.className = 'inn-row';
+    const sp = document.createElement('span'); sp.textContent = (i+1) + '回';
+    const b  = document.createElement('b'); b.textContent = g.config.awayName + ':' + (a != null ? a : '-') + ' / ' + g.config.homeName + ':' + (h != null ? h : '-');
+    d.appendChild(sp); d.appendChild(b); cont.appendChild(d);
+  }
+  openModal('modal-summary');
+}
+
+// =============================================
+// XLSX DOWNLOAD
+// =============================================
+function buildXlsxData() {
+  const g = gameState, rows = [], ec = g.eventCounts, limit = g.config.pitchLimit || 0;
+  rows.push(['学童野球スコアシート']);
+  rows.push(['試合日: ' + g.config.date, '', g.config.awayName + ' vs ' + g.config.homeName]);
+  rows.push([]);
+  const hRow = [''];
+  for (let i=1;i<=g.config.innings;i++) hRow.push(i + '回');
+  hRow.push('合計','安打'); rows.push(hRow);
+  ['away','home'].forEach(function(side) {
+    const r = [g.config[side+'Name']];
+    for (let i=0;i<g.config.innings;i++) r.push(g.inningRuns[side][i] != null ? g.inningRuns[side][i] : '');
+    r.push(g.score[side], g.hits[side]); rows.push(r);
+  });
+  rows.push([]);
+  rows.push(['得点内訳']);
+  rows.push(['安打による得点', ec.hitRuns], ['四死球・押出し', ec.walkRuns], ['盗塁による得点', ec.stealRuns], ['PB/WPによる得点', ec.pbwpRuns], ['エラーによる得点', ec.errRuns]);
+  rows.push(['盗塁数', ec.steal, '盗塁刺', ec.cs, 'PB', ec.pb, 'WP', ec.wp, 'ボーク', ec.balk]);
+  rows.push([]);
+  rows.push(['投手成績' + (limit ? '（球数制限: ' + limit + '球）' : '')]);
+  rows.push(['チーム','投手名','通算投球数','制限状況','登板履歴']);
+  ['away','home'].forEach(function(side) {
+    g.pitchers[side].forEach(function(p) {
+      const over = limit > 0 && p.pitches >= limit;
+      const sess = (p.sessions||[]).map(function(s){ return s.inning + '回' + (s.tb==='top'?'表':'裏') + s.type + '(' + s.startPitches + '球〜)'; }).join(' → ');
+      rows.push([g.config[side+'Name'], p.name, p.pitches, limit ? (over ? '超過('+p.pitches+'/'+limit+'球)' : '範囲内('+p.pitches+'/'+limit+'球)') : '制限なし', sess]);
+    });
+  });
+  rows.push([]);
+  rows.push(['記録ログ']); rows.push(['回','内容']);
+  g.log.slice().reverse().forEach(function(l){ rows.push([l.inn, l.msg]); });
+  return rows;
+}
+
+function downloadXlsx() {
+  if (!window.XLSX) {
+    showToast('XLSライブラリ読み込み中...');
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = doDownloadXlsx; document.head.appendChild(s);
+  } else { doDownloadXlsx(); }
+}
+
+function downloadGameXlsx(i) {
+  const games = getSavedGames(), saved = gameState; gameState = games[i]; downloadXlsx(); gameState = saved;
+}
+
+function doDownloadXlsx() {
+  try {
+    const rows = buildXlsxData(), wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{wch:20},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8},{wch:8}];
+    XLSX.utils.book_append_sheet(wb, ws, 'スコア');
+    XLSX.writeFile(wb, 'score_' + gameState.config.date + '_' + gameState.config.awayName + 'vs' + gameState.config.homeName + '.xlsx');
+    showToast('XLSをダウンロードしました');
+  } catch(e) { showToast('ダウンロードエラー: ' + e.message); }
+}
+
+// =============================================
+// MODAL HELPERS
+// =============================================
+function openModal(id)  { const e=document.getElementById(id); if(e) e.classList.add('open'); }
+function closeModal(id) { const e=document.getElementById(id); if(e) e.classList.remove('open'); }
+
+// =============================================
+// INIT
+// =============================================
+function init() { showLock(); }
+init();
+
+</script>
+
+</body>
+</html>
